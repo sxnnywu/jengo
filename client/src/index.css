@@ -12,6 +12,10 @@
   font-weight: 400;
   color: #213547;
   background-color: #ffffff;
+  --navy: #283044;
+  --blue: #788AA3;
+  --peach: #F68E5F;
+  --orange: #FF5100;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;

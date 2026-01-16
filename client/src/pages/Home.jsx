@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import './Home.css';
+import logo from '../assets/jengologo.png';
 
 const Home = () => {
   return (
@@ -8,21 +9,17 @@ const Home = () => {
       {/* Hero Section */}
       <section className="hero-section">
         <div className="hero-content">
-          <h1 className="hero-title">Connect. Volunteer. Impact.</h1>
+          <img src={logo} alt="Jengo" className="hero-logo" />
           <p className="hero-subtitle">
-            A C2C volunteer marketplace where nonprofits post opportunities 
-            and students apply to earn hours and gain valuable experience.
+            Find volunteer tasks. Get accepted. Earn hours and experience.
           </p>
           <div className="hero-buttons">
             <Link to="/register" className="btn btn-primary">
-              Get Started as Volunteer
+              Volunteers
             </Link>
             <Link to="/register?role=nonprofit" className="btn btn-secondary">
-              Get Started as Nonprofit
+              Nonprofits
             </Link>
-          </div>
-          <div className="hero-login">
-            <Link to="/login">Already have an account? Sign in</Link>
           </div>
         </div>
       </section>
