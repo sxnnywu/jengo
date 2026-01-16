@@ -1,0 +1,96 @@
+.navbar {
+  background: white;
+  border-bottom: 1px solid #e0e0e0;
+  padding: 0;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.navbar-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 16px 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.navbar-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  color: #213547;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.logo-icon {
+  font-size: 2rem;
+}
+
+.logo-text {
+  font-weight: 700;
+}
+
+.navbar-menu {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.navbar-link {
+  color: #666;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 1rem;
+  transition: color 0.2s;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  padding: 0;
+}
+
+.navbar-link:hover {
+  color: #667eea;
+}
+
+.btn-signup {
+  background-color: #667eea;
+  color: white !important;
+  padding: 10px 24px;
+  border-radius: 8px;
+  transition: background-color 0.2s;
+}
+
+.btn-signup:hover {
+  background-color: #5a6fd8;
+}
+
+.btn-logout {
+  color: #666;
+}
+
+.btn-logout:hover {
+  color: #d32f2f;
+}
+
+@media (max-width: 768px) {
+  .navbar-container {
+    padding: 12px 20px;
+  }
+  
+  .navbar-menu {
+    gap: 16px;
+  }
+  
+  .navbar-link {
+    font-size: 0.9rem;
+  }
+  
+  .btn-signup {
+    padding: 8px 16px;
+  }
+}

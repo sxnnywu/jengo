@@ -1,0 +1,165 @@
+.application-card {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.application-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+.application-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+.applicant-info {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.applicant-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.applicant-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #213547;
+  margin: 0 0 4px 0;
+}
+
+.applicant-email {
+  font-size: 0.9rem;
+  color: #666;
+  margin: 0;
+}
+
+.status-badge {
+  padding: 6px 12px;
+  border-radius: 16px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.status-applied {
+  background-color: #e3f2fd;
+  color: #1976d2;
+}
+
+.status-accepted {
+  background-color: #e8f5e9;
+  color: #388e3c;
+}
+
+.status-rejected {
+  background-color: #ffebee;
+  color: #d32f2f;
+}
+
+.application-details {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.detail-item {
+  display: flex;
+  gap: 8px;
+}
+
+.detail-label {
+  font-weight: 600;
+  color: #666;
+  font-size: 0.9rem;
+  min-width: 80px;
+}
+
+.detail-value {
+  color: #213547;
+  font-size: 0.9rem;
+}
+
+.application-skills {
+  margin-bottom: 20px;
+}
+
+.skills-label {
+  font-weight: 600;
+  color: #666;
+  font-size: 0.9rem;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.skills-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.skill-badge {
+  padding: 6px 12px;
+  background-color: #f0f0f0;
+  color: #555;
+  border-radius: 16px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.application-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.btn-accept {
+  flex: 1;
+  background-color: #4caf50;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-accept:hover {
+  background-color: #45a049;
+}
+
+.btn-reject {
+  flex: 1;
+  background-color: #f44336;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-reject:hover {
+  background-color: #da190b;
+}
