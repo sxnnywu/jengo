@@ -2,8 +2,6 @@
 
 A C2C-style volunteer marketplace where nonprofits post one-time tasks and students/volunteers apply to earn hours or experience.
 
-**Think: Intern Insider × volunteer verification**
-
 ## Tech Stack
 
 - **MongoDB** - Database
