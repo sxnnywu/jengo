@@ -30,24 +30,12 @@ const Home = () => {
           <h2 className="section-title">How It Works</h2>
           <div className="steps-container">
             <div className="step step-1">
-              <div className="step-number">1</div>
-              <h3>Sign Up</h3>
-              <p>Create your account as a volunteer or nonprofit</p>
+              <h3>Browse + Apply</h3>
+              <p>Explore one-time volunteer opportunities and apply fast.</p>
             </div>
             <div className="step step-2">
-              <div className="step-number">2</div>
-              <h3>Explore</h3>
-              <p>Browse opportunities that match your goals</p>
-            </div>
-            <div className="step step-3">
-              <div className="step-number">3</div>
-              <h3>Apply & Connect</h3>
-              <p>Apply instantly and start conversations</p>
-            </div>
-            <div className="step step-4">
-              <div className="step-number">4</div>
-              <h3>Impact & Track</h3>
-              <p>Volunteer and earn hours and achievements</p>
+              <h3>Get Matched by Jengo Bird</h3>
+              <p>We match your skills with what nonprofits need right now.</p>
             </div>
           </div>
         </div>
