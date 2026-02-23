@@ -230,6 +230,7 @@
   font-weight: 700;
 }
 
+
 @media (max-width: 900px) {
   .about-hero__title {
     font-size: 2.6rem;

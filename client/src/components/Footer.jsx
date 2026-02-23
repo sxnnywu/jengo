@@ -27,7 +27,7 @@ const Footer = () => {
             <h4>Company</h4>
             <ul>
               <li><Link to="/about">About Us</Link></li>
-              <li><a href="#contact">Contact</a></li>
+              <li><Link to="/contact">Contact</Link></li>
             </ul>
           </div>
         </div>

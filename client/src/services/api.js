@@ -36,6 +36,15 @@ const api = {
     return response.json();
   },
 
+  sendContactMessage: async (messageData) => {
+    const response = await fetch(`${API_BASE_URL}/contact`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(messageData)
+    });
+    return response.json();
+  },
+
   // User endpoints
   getUserProfile: async (userId) => {
     const token = localStorage.getItem('token');

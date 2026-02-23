@@ -11,6 +11,7 @@ import Opportunities from './pages/Opportunities';
 import OpportunityDetails from './pages/OpportunityDetails';
 import Dashboard from './pages/Dashboard';
 import About from './pages/About';
+import Contact from './pages/Contact';
 import './App.css';
 
 const AppRoutes = () => {
@@ -59,6 +60,13 @@ const AppRoutes = () => {
             <>
               <Navbar />
               <About />
+              <Footer />
+            </>
+          } />
+          <Route path="/contact" element={
+            <>
+              <Navbar />
+              <Contact />
               <Footer />
             </>
           } />
