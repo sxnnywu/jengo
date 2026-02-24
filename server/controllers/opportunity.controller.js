@@ -1,6 +1,25 @@
 import Opportunity from '../models/Opportunity.model.js';
 import Application from '../models/Application.model.js';
 
+function extractKeywords(text, max = 20) {
+  const stop = new Set([
+    'a','an','and','are','as','at','be','but','by','for','from','has','have','i','in','is','it','its','of','on',
+    'or','our','so','that','the','their','they','this','to','was','we','were','with','you','your'
+  ]);
+  const tokens = (text || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, ' ')
+    .split(/\s+/)
+    .map((t) => t.trim())
+    .filter((t) => t.length >= 3 && !stop.has(t));
+  const counts = new Map();
+  for (const t of tokens) counts.set(t, (counts.get(t) || 0) + 1);
+  return [...counts.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, max)
+    .map(([k]) => k);
+}
+
 // @desc    Create a new opportunity
 // @route   POST /api/opportunities
 // @access  Private (Nonprofit only)
@@ -10,9 +29,18 @@ export const createOpportunity = async (req, res) => {
       return res.status(403).json({ message: 'Only nonprofits can create opportunities' });
     }
 
+    const matchText = [
+      req.body.description || '',
+      (req.body.skillsRequired || []).join(' '),
+      req.body.category || '',
+      req.body.title || ''
+    ].join(' ');
+    const keywords = extractKeywords(matchText);
+
     const opportunity = await Opportunity.create({
       ...req.body,
-      nonprofit: req.user._id
+      nonprofit: req.user._id,
+      keywords
     });
 
     res.status(201).json({ opportunity });

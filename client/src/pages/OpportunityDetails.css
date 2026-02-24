@@ -29,6 +29,20 @@
   align-items: center;
   justify-content: center;
   font-size: 2rem;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.details-logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.details-logo-fallback {
+  color: white;
+  font-weight: 700;
+  font-size: 1.5rem;
 }
 
 .details-header h1 {

@@ -42,27 +42,6 @@ const INTEREST_SUGGESTIONS = [
   'Disaster Relief'
 ];
 
-const STOPWORDS = new Set([
-  'a','an','and','are','as','at','be','but','by','for','from','has','have','i','in','is','it','its','of','on',
-  'or','our','so','that','the','their','they','this','to','was','we','were','with','you','your'
-]);
-
-function extractKeywords(text, max = 20) {
-  const tokens = (text || '')
-    .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, ' ')
-    .split(/\s+/)
-    .map((t) => t.trim())
-    .filter((t) => t.length >= 3 && !STOPWORDS.has(t));
-
-  const counts = new Map();
-  for (const t of tokens) counts.set(t, (counts.get(t) || 0) + 1);
-  return [...counts.entries()]
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, max)
-    .map(([k]) => k);
-}
-
 function passwordChecks(pw) {
   const v = pw || '';
   return {
@@ -88,6 +67,11 @@ const Register = () => {
   const formRef = useRef(null);
   const paneRefs = useRef([]);
   const [viewportHeight, setViewportHeight] = useState(undefined);
+  const [completing, setCompleting] = useState(false);
+  const [completePct, setCompletePct] = useState(0);
+  const [fadeOut, setFadeOut] = useState(false);
+  const completionIntervalRef = useRef(null);
+  const completionFadeTimeoutRef = useRef(null);
 
   const [formData, setFormData] = useState({
     role: roleFromUrl === 'nonprofit' ? 'nonprofit' : 'volunteer',
@@ -116,9 +100,6 @@ const Register = () => {
     neededInterests: [],
     organizationDescription: '',
     website: '',
-
-    // matching
-    matchingText: '',
 
     password: '',
     confirmPassword: ''
@@ -160,13 +141,10 @@ const Register = () => {
       flow.push({ key: 'neededInterests', label: 'Focus areas' });
     }
 
-    flow.push({ key: 'match', label: 'Matching' });
-
     return flow;
   }, [formData.role]);
 
   const checks = useMemo(() => passwordChecks(formData.password), [formData.password]);
-  const keywords = useMemo(() => extractKeywords(formData.matchingText), [formData.matchingText]);
   const progressPct = useMemo(() => {
     const denom = Math.max(steps.length - 1, 1);
     return Math.round((step / denom) * 100);
@@ -250,6 +228,7 @@ const Register = () => {
   const [stepErrors, setStepErrors] = useState({});
 
   const goNext = () => {
+    if (submitting || completing) return;
     const errors = validateStep(step);
     setStepErrors(errors);
     if (Object.keys(errors).length > 0) {
@@ -280,18 +259,27 @@ const Register = () => {
   };
 
   const goBack = () => {
+    if (submitting || completing) return;
     setSubmitError('');
     setStepErrors({});
     setStep((s) => Math.max(s - 1, 0));
   };
 
   useEffect(() => {
+    return () => {
+      if (completionIntervalRef.current) window.clearInterval(completionIntervalRef.current);
+      if (completionFadeTimeoutRef.current) window.clearTimeout(completionFadeTimeoutRef.current);
+    };
+  }, []);
+
+  useEffect(() => {
     const el = paneRefs.current[step];
     if (!el) return;
 
     const measure = () => {
-      // Use scrollHeight to avoid clipping when content wraps.
-      const next = Math.ceil(el.scrollHeight) + 8;
+      const panel = el.querySelector('.wizard-panel');
+      // Measure the content (not the stretched flex item) to avoid feedback loops that grow the viewport.
+      const next = Math.ceil((panel?.scrollHeight ?? el.scrollHeight)) + 8;
       setViewportHeight(next);
     };
 
@@ -302,8 +290,37 @@ const Register = () => {
     return () => ro.disconnect();
   }, [step, formData.role]);
 
+  const startCompletionTransition = () => {
+    const FILL_MS = 1600;
+    const FADE_MS = 320;
+
+    if (completionIntervalRef.current) window.clearInterval(completionIntervalRef.current);
+    if (completionFadeTimeoutRef.current) window.clearTimeout(completionFadeTimeoutRef.current);
+
+    setCompleting(true);
+    setFadeOut(false);
+    setCompletePct(0);
+
+    const startedAt = Date.now();
+    completionIntervalRef.current = window.setInterval(() => {
+      const elapsed = Date.now() - startedAt;
+      const pct = Math.min(100, Math.round((elapsed / FILL_MS) * 100));
+      setCompletePct(pct);
+      if (pct >= 100) {
+        if (completionIntervalRef.current) window.clearInterval(completionIntervalRef.current);
+        completionIntervalRef.current = null;
+
+        setFadeOut(true);
+        completionFadeTimeoutRef.current = window.setTimeout(() => {
+          navigate('/dashboard', { replace: true });
+        }, FADE_MS);
+      }
+    }, 40);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (submitting || completing) return;
     setSubmitError('');
 
     const errors = validateStep(step);
@@ -344,8 +361,8 @@ const Register = () => {
         website: formData.role === 'nonprofit' ? formData.website : undefined,
 
         matchingProfile: {
-          text: formData.matchingText,
-          keywords
+          text: '',
+          keywords: []
         }
       };
 
@@ -375,11 +392,11 @@ const Register = () => {
         neededInterests: formData.role === 'nonprofit' ? formData.neededInterests : undefined,
         organizationDescription: formData.role === 'nonprofit' ? formData.organizationDescription : undefined,
         website: formData.role === 'nonprofit' ? formData.website : undefined,
-        matchingProfile: { text: formData.matchingText, keywords }
+        matchingProfile: { text: '', keywords: [] }
       };
       localStorage.setItem('currentUser', JSON.stringify(safeUser));
 
-      navigate('/dashboard');
+      startCompletionTransition();
     } catch (err) {
       setSubmitError(err?.message || 'Registration failed.');
     } finally {
@@ -389,6 +406,7 @@ const Register = () => {
 
   const isLastStep = step >= steps.length - 1;
   const handleWizardKeyDown = (e) => {
+    if (submitting || completing) return;
     if (e.key !== 'Enter') return;
     if (isLastStep) return;
     if (e.target?.tagName?.toLowerCase() === 'textarea') return;
@@ -410,7 +428,7 @@ const Register = () => {
                 className={`role-option ${formData.role === 'volunteer' ? 'active' : ''}`}
                 onClick={() => setFormData({ ...formData, role: 'volunteer' })}
               >
-                <span className="role-icon">👤</span>
+                <span className="role-icon" aria-hidden="true">V</span>
                 <div className="role-text">
                   <strong>Volunteer</strong>
                   <span>Find opportunities and build experience</span>
@@ -421,7 +439,7 @@ const Register = () => {
                 className={`role-option ${formData.role === 'nonprofit' ? 'active' : ''}`}
                 onClick={() => setFormData({ ...formData, role: 'nonprofit' })}
               >
-                <span className="role-icon">🏢</span>
+                <span className="role-icon" aria-hidden="true">N</span>
                 <div className="role-text">
                   <strong>Nonprofit</strong>
                   <span>Post opportunities and review applicants</span>
@@ -633,43 +651,6 @@ const Register = () => {
           </>
         );
 
-      case 'match':
-        return (
-          <>
-            <div className="wizard-title">Matching profile <span className="muted">(optional)</span></div>
-            <div className="wizard-subtitle">A couple sentences helps us match you better.</div>
-            <div className="form-group">
-              <label htmlFor="matchingText">
-                {formData.role === 'volunteer'
-                  ? 'What kind of nonprofits do you want to work with? What do you want to learn?'
-                  : 'What do you want from a volunteer? What tasks and timeline matter most?'}
-              </label>
-              <textarea
-                id="matchingText"
-                name="matchingText"
-                value={formData.matchingText}
-                onChange={handleChange}
-                placeholder="Write a few sentences (optional)..."
-                className="wizard-textarea"
-              />
-            </div>
-            <div className="form-group">
-              <label>Extracted keywords (manual, for now)</label>
-              <div className="keyword-row">
-                {keywords.length > 0 ? (
-                  keywords.map((k) => (
-                    <span key={k} className="keyword-pill">
-                      {k}
-                    </span>
-                  ))
-                ) : (
-                  <span className="muted">Add some text above to generate keywords.</span>
-                )}
-              </div>
-            </div>
-          </>
-        );
-
       case 'password':
         return (
           <>
@@ -748,8 +729,10 @@ const Register = () => {
     }
   };
 
+  const busy = submitting || completing;
+
   return (
-    <div className="auth-page auth-page--signup">
+    <div className={`auth-page auth-page--signup ${completing ? 'auth-page--completing' : ''} ${fadeOut ? 'auth-page--fade-out' : ''}`}>
       <div className="auth-container auth-container--wide">
         <form ref={formRef} className="wizard" onSubmit={handleSubmit} onKeyDown={handleWizardKeyDown}>
           <div className="wizard-progress" aria-label="Sign up progress">
@@ -771,23 +754,41 @@ const Register = () => {
                 </div>
               ))}
             </div>
+
+            {completing ? (
+              <div className="wizard-completeOverlay" role="status" aria-live="polite">
+                <div className="wizard-completeCard">
+                  <div className="wizard-title">Setting up your dashboard…</div>
+                  <div className="wizard-subtitle">Hang tight — we’re finishing a few things.</div>
+                  <div className="wizard-progress__track wizard-completeTrack" aria-hidden="true">
+                    <div className="wizard-progress__fill wizard-completeFill" style={{ width: `${completePct}%` }} />
+                  </div>
+                </div>
+              </div>
+            ) : null}
           </div>
 
           <div className="wizard-nav">
-            <button type="button" className="btn btn-ghost" onClick={goBack} disabled={step === 0 || submitting}>
+            <button type="button" className="btn btn-ghost" onClick={goBack} disabled={step === 0 || busy}>
               Back
             </button>
 
             {!isLastStep ? (
-              <button type="button" className="btn btn-primary" onClick={goNext} disabled={submitting}>
+              <button type="button" className="btn btn-primary" onClick={goNext} disabled={busy}>
                 Next
               </button>
             ) : (
-              <button type="submit" className="btn btn-primary" disabled={submitting}>
-                {submitting ? 'Creating...' : 'Create Account'}
+              <button type="submit" className="btn btn-primary" disabled={busy}>
+                {busy ? 'Creating...' : 'Create Account'}
               </button>
             )}
           </div>
+
+          {submitError ? (
+            <div className="form-error" role="alert">
+              {submitError}
+            </div>
+          ) : null}
         </form>
 
         <div className="auth-footer">

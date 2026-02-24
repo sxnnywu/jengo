@@ -31,6 +31,19 @@
   justify-content: center;
   font-size: 1.5rem;
   flex-shrink: 0;
+  overflow: hidden;
+}
+
+.company-logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.company-logo-fallback {
+  color: white;
+  font-weight: 700;
+  font-size: 1.25rem;
 }
 
 .card-meta {
@@ -132,6 +145,11 @@
   background-color: var(--surface-subtle-2);
 }
 
+.skill-tag--more {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
 .card-footer {
   display: flex;
   justify-content: space-between;
@@ -210,6 +228,24 @@
   color: #ffffff;
   cursor: not-allowed;
   transform: none;
+}
+
+.btn-find-volunteers {
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid var(--primary);
+  background: transparent;
+  color: var(--primary);
+}
+
+.btn-find-volunteers:hover {
+  background: var(--primary);
+  color: white;
+  transform: translateY(-1px);
 }
 
 @media (max-width: 768px) {

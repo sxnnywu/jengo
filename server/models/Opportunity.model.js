@@ -21,6 +21,10 @@ const opportunitySchema = new mongoose.Schema(
       type: [String],
       default: []
     },
+    keywords: {
+      type: [String],
+      default: []
+    },
     estimatedHours: {
       type: Number,
       required: [true, 'Estimated hours is required'],

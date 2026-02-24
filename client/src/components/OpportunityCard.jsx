@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './OpportunityCard.css';
 
-const OpportunityCard = ({ opportunity, onApply, onClose, showApply = true, showStatus = true }) => {
+const OpportunityCard = ({ opportunity, onApply, onClose, onFindVolunteers, showApply = true, showStatus = true }) => {
   const [isSaved, setIsSaved] = useState(() => {
     const saved = JSON.parse(localStorage.getItem('savedOpportunities') || '[]');
     return saved.includes(opportunity.id);
@@ -37,11 +37,21 @@ const OpportunityCard = ({ opportunity, onApply, onClose, showApply = true, show
     }
   };
 
+  const handleFindVolunteers = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (onFindVolunteers) {
+      onFindVolunteers(opportunity);
+    }
+  };
+
   const getTimeAgo = (timeString) => {
     return timeString.toLowerCase();
   };
 
-  const skills = opportunity.skillsRequired || opportunity.skills || [];
+  const allSkills = opportunity.skillsRequired || opportunity.skills || [];
+  const skills = allSkills.slice(0, 3);
+  const remainingCount = allSkills.length - 3;
   const isClosed = opportunity.status === 'closed';
   const workMode =
     opportunity.workMode ||
@@ -53,7 +63,13 @@ const OpportunityCard = ({ opportunity, onApply, onClose, showApply = true, show
     <div className="opportunity-card" onClick={() => navigate(`/opportunities/${opportunity.id}`)}>
       <div className="card-header">
         <div className="company-logo">
-          {opportunity.logo || '🏢'}
+          {opportunity.logo ? (
+            <img src={opportunity.logo} alt="" className="company-logo-img" />
+          ) : (
+            <span className="company-logo-fallback">
+              {(opportunity.company || '?').charAt(0).toUpperCase()}
+            </span>
+          )}
         </div>
         <div className="card-meta">
           <span className="time-posted">{getTimeAgo(opportunity.postedTime)}</span>
@@ -81,6 +97,9 @@ const OpportunityCard = ({ opportunity, onApply, onClose, showApply = true, show
               {skill}
             </span>
           ))}
+          {remainingCount > 0 && (
+            <span className="skill-tag skill-tag--more">+{remainingCount} more</span>
+          )}
         </div>
 
         <div className="card-footer">
@@ -94,7 +113,7 @@ const OpportunityCard = ({ opportunity, onApply, onClose, showApply = true, show
               onClick={handleSave}
               title={isSaved ? 'Unsave' : 'Save'}
             >
-              {isSaved ? '✓ Saved' : '🔖 Save'}
+              {isSaved ? 'Saved' : 'Save'}
             </button>
             {showApply && (
               <button className="btn-apply" onClick={handleApply} disabled={isClosed}>
@@ -104,6 +123,11 @@ const OpportunityCard = ({ opportunity, onApply, onClose, showApply = true, show
             {!showApply && onClose && (
               <button className="btn-apply" onClick={handleClose} disabled={isClosed}>
                 {isClosed ? 'Closed' : 'Close'}
+              </button>
+            )}
+            {onFindVolunteers && (
+              <button type="button" className="btn-find-volunteers" onClick={handleFindVolunteers}>
+                Find Volunteers
               </button>
             )}
           </div>

@@ -16,10 +16,15 @@
   margin: 0 auto;
 }
 
-.hero-logo {
+.home-page .hero-logo {
   margin-top: -150px;
+  margin-bottom: 0px;
+  margin-left: 120px;
+  margin-right: 0px;
   width: 75%;
   height: auto;
+  display: block;
+  transform: rotate(360deg);
 }
 
 .hero-subtitle {

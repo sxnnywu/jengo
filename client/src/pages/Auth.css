@@ -18,10 +18,16 @@
   width: 100%;
   max-width: 480px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  transition: opacity 320ms ease, transform 320ms ease;
 }
 
 .auth-container--wide {
   max-width: 980px;
+}
+
+.auth-page--fade-out .auth-container {
+  opacity: 0;
+  transform: translateY(10px);
 }
 
 .auth-header {
@@ -125,24 +131,53 @@
 }
 
 .auth-page--signup .wizard-viewport {
-  min-height: 420px;
-}
-
-.auth-page--signup .wizard-track,
-.auth-page--signup .wizard-pane,
-.auth-page--signup .wizard-panel {
-  height: 100%;
+  min-height: 0;
 }
 
 .wizard-viewport {
   overflow: hidden;
   border-radius: 14px;
   transition: height 260ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  position: relative;
+}
+
+.wizard-completeOverlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: color-mix(in srgb, var(--surface) 78%, transparent);
+  backdrop-filter: blur(6px);
+  pointer-events: all;
+}
+
+.wizard-completeCard {
+  width: 100%;
+  max-width: 520px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 18px 18px 16px;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.18);
+}
+
+.wizard-completeTrack {
+  margin-top: 12px;
+  height: 10px;
+  background: color-mix(in srgb, var(--navy) 10%, white);
+  border: 1px solid color-mix(in srgb, var(--navy) 18%, var(--border));
+}
+
+.wizard-completeFill {
+  background: var(--primary);
 }
 
 .wizard-track {
   display: flex;
   width: 100%;
+  align-items: flex-start;
   transform: translateX(0%);
   transition: transform 320ms cubic-bezier(0.2, 0.8, 0.2, 1);
   will-change: transform;
@@ -153,16 +188,16 @@
   padding: 2px;
 }
 
-.wizard-pane--role .wizard-panel {
-  height: 160px;
-}
-
 @media (prefers-reduced-motion: reduce) {
   .wizard-track {
     transition: none;
   }
 
   .wizard-progress__fill {
+    transition: none;
+  }
+
+  .auth-container {
     transition: none;
   }
 }
@@ -227,7 +262,7 @@
 }
 
 .auth-page--signup .wizard-nav {
-  margin-top: 36px;
+  margin-top: 12px;
 }
 
 .btn-ghost {
