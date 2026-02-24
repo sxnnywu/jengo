@@ -106,6 +106,7 @@ const Dashboard = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const resumeInputRef = useRef(null);
   const profilePhotoInputRef = useRef(null);
+  const nonprofitLogoInputRef = useRef(null);
   const [isResumeDragOver, setIsResumeDragOver] = useState(false);
   const [resumeStatus, setResumeStatus] = useState({ state: 'idle', fileName: '' }); // idle|uploading|done|error
   const [volJengoQuery, setVolJengoQuery] = useState('');
@@ -412,6 +413,32 @@ const Dashboard = () => {
         const updatedUser = {
           ...(JSON.parse(localStorage.getItem('currentUser') || 'null') || {}),
           profilePhoto: data.profilePhoto
+        };
+        localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+        setCurrentUser(updatedUser);
+      }
+    } catch {
+      // keep local preview if upload fails
+    }
+  };
+
+  const handleNonprofitLogoSelected = async (file) => {
+    if (!file) return;
+
+    const localUrl = URL.createObjectURL(file);
+    setNonprofitProfile((p) => ({ ...p, logo: localUrl }));
+
+    const userIdForUpload = currentUser?.id || currentUser?._id;
+    const token = localStorage.getItem('token');
+    if (!token || !userIdForUpload) return;
+
+    try {
+      const data = await api.uploadProfilePhoto(userIdForUpload, file);
+      if (data?.profilePhoto) {
+        setNonprofitProfile((p) => ({ ...p, logo: data.profilePhoto }));
+        const updatedUser = {
+          ...(JSON.parse(localStorage.getItem('currentUser') || 'null') || {}),
+          logo: data.profilePhoto
         };
         localStorage.setItem('currentUser', JSON.stringify(updatedUser));
         setCurrentUser(updatedUser);
@@ -1055,7 +1082,35 @@ const Dashboard = () => {
       case 'profile':
         return (
           <div className="profile-section">
-            <h2>Organization Profile</h2>
+            <div className="profile-header">
+              <h2>Organization Profile</h2>
+              <button
+                type="button"
+                className="profile-avatar-btn"
+                onClick={() => nonprofitLogoInputRef.current?.click()}
+                aria-label="Edit organization logo"
+              >
+                {nonprofitProfile.logo ? (
+                  <img
+                    className="profile-avatar-img"
+                    src={resolveMediaUrl(nonprofitProfile.logo)}
+                    alt="Organization logo"
+                  />
+                ) : (
+                  <div className="profile-avatar-fallback" aria-hidden="true">
+                    {(nonprofitProfile.name || currentUser?.name || 'O').slice(0, 1).toUpperCase()}
+                  </div>
+                )}
+                <div className="profile-avatar-overlay">Edit</div>
+              </button>
+              <input
+                ref={nonprofitLogoInputRef}
+                type="file"
+                accept="image/*"
+                style={{ display: 'none' }}
+                onChange={(e) => handleNonprofitLogoSelected(e.target.files?.[0])}
+              />
+            </div>
             <div className="profile-form">
               <div className="form-group">
                 <label>Organization Name</label>
@@ -1142,15 +1197,6 @@ const Dashboard = () => {
                   value={nonprofitProfile.typicalVolunteerHours}
                   onChange={(e) => setNonprofitProfile({ ...nonprofitProfile, typicalVolunteerHours: e.target.value })}
                   placeholder="e.g., 10-20 hours per week"
-                />
-              </div>
-              <div className="form-group">
-                <label>Organization Logo URL</label>
-                <input
-                  type="url"
-                  value={nonprofitProfile.logo}
-                  onChange={(e) => setNonprofitProfile({ ...nonprofitProfile, logo: e.target.value })}
-                  placeholder="https://..."
                 />
               </div>
               <button className="btn btn-primary" onClick={handleNonprofitProfileSave}>
