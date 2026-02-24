@@ -64,6 +64,7 @@ const Dashboard = () => {
       : mockApplications;
   });
   const [activeTab, setActiveTab] = useState('opportunities');
+  const [shortlistSubTab, setShortlistSubTab] = useState('saved'); // 'saved' | 'applications'
   const [currentUser, setCurrentUser] = useState(() =>
     JSON.parse(localStorage.getItem('currentUser') || 'null')
   );
@@ -165,7 +166,7 @@ const Dashboard = () => {
     setViewRole(role);
     // Reset to appropriate default tab
     if (role === 'volunteer') {
-      setActiveTab('discover');
+      setActiveTab('opportunities');
     } else {
       setActiveTab('my-postings');
     }
@@ -640,42 +641,62 @@ const Dashboard = () => {
             ))}
           </div>
         );
-      case 'saved': {
+      case 'shortlist': {
         const savedIds = JSON.parse(localStorage.getItem('savedOpportunities') || '[]');
         const savedOpps = opportunities.filter(opp => savedIds.includes(opp.id));
-        return savedOpps.length > 0 ? (
-          <div className="opportunities-grid">
-            {savedOpps.map((opp) => (
-              <OpportunityCard key={opp.id} opportunity={opp} showStatus />
-            ))}
-          </div>
-        ) : (
-          <div className="empty-state">
-            <h3>No Opportunities</h3>
-            <p>Save opportunities you're interested in to view them here.</p>
+        return (
+          <div className="shortlist-page">
+            <div className="shortlist-tabs">
+              <button
+                type="button"
+                className={`shortlist-tab ${shortlistSubTab === 'saved' ? 'active' : ''}`}
+                onClick={() => setShortlistSubTab('saved')}
+              >
+                Saved
+              </button>
+              <button
+                type="button"
+                className={`shortlist-tab ${shortlistSubTab === 'applications' ? 'active' : ''}`}
+                onClick={() => setShortlistSubTab('applications')}
+              >
+                Applications
+              </button>
+            </div>
+            {shortlistSubTab === 'saved' ? (
+              savedOpps.length > 0 ? (
+                <div className="opportunities-grid">
+                  {savedOpps.map((opp) => (
+                    <OpportunityCard key={opp.id} opportunity={opp} onApply={() => handleApply(opp.id)} showStatus />
+                  ))}
+                </div>
+              ) : (
+                <div className="empty-state">
+                  <h3>No Saved Opportunities</h3>
+                  <p>Save opportunities you're interested in to view them here.</p>
+                </div>
+              )
+            ) : myApplications.length > 0 ? (
+              <div className="applications-grid">
+                {myApplications.map((app) => {
+                  const opp = opportunities.find(o => o.id === app.opportunityId);
+                  return (
+                    <VolunteerApplicationCard
+                      key={app.id}
+                      application={app}
+                      opportunity={opp}
+                    />
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="empty-state">
+                <h3>No Applications Yet</h3>
+                <p>Start applying to opportunities to track your applications here.</p>
+              </div>
+            )}
           </div>
         );
       }
-      case 'applications':
-        return myApplications.length > 0 ? (
-          <div className="applications-grid">
-            {myApplications.map((app) => {
-              const opp = opportunities.find(o => o.id === app.opportunityId);
-              return (
-                <VolunteerApplicationCard
-                  key={app.id}
-                  application={app}
-                  opportunity={opp}
-                />
-              );
-            })}
-          </div>
-        ) : (
-          <div className="empty-state">
-            <h3>No Applications Yet</h3>
-            <p>Start applying to opportunities to track your applications here.</p>
-          </div>
-        );
       case 'profile':
         return (
           <div className="profile-section">
@@ -1286,8 +1307,7 @@ const Dashboard = () => {
         case 'discover': return 'Go Jengo';
         case 'matches': return 'Matches';
         case 'opportunities': return 'Volunteer Opportunities';
-        case 'saved': return 'Saved Opportunities';
-        case 'applications': return 'My Applications';
+        case 'shortlist': return 'Shortlist';
         case 'profile': return 'My Profile';
         default: return 'Dashboard';
       }
@@ -1323,36 +1343,6 @@ const Dashboard = () => {
               currentRole={viewRole} 
               onRoleChange={handleRoleChange}
             />
-            <div className="dash-actions" style={{ marginLeft: '12px' }}>
-              {viewRole === 'volunteer' ? (
-                <button
-                  type="button"
-                  className={`dash-btn ${activeTab === 'discover' ? 'dash-btn--primary' : ''}`}
-                  onClick={() => setActiveTab('discover')}
-                  title="Go Jengo"
-                >
-                  🐦 Go Jengo
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  className={`dash-btn ${activeTab === 'applicants' ? 'dash-btn--primary' : ''}`}
-                  onClick={() => setActiveTab('applicants')}
-                  title="Go Jengo"
-                >
-                  🐦 Go Jengo
-                </button>
-              )}
-
-              <button
-                type="button"
-                className={`dash-btn ${activeTab === 'matches' ? 'dash-btn--primary' : ''}`}
-                onClick={() => setActiveTab('matches')}
-                title="Matches"
-              >
-                🤝 Matches
-              </button>
-            </div>
             <div className="user-menu-wrapper" ref={menuRef}>
               <button
                 type="button"
@@ -1364,7 +1354,7 @@ const Dashboard = () => {
                 <div className="user-avatar">
                   {currentUser?.name ? currentUser.name.charAt(0).toUpperCase() : 'S'}
                 </div>
-                <span className="dropdown-arrow">{isMenuOpen ? '▲' : '▼'}</span>
+                <span className="dropdown-arrow" aria-hidden="true">{isMenuOpen ? '^' : 'v'}</span>
               </button>
 
               {isMenuOpen ? (
@@ -1381,7 +1371,7 @@ const Dashboard = () => {
                     onClick={handleOpenProfile}
                   >
                     <span>My profile</span>
-                    <span aria-hidden="true">↗</span>
+                    <span aria-hidden="true">&rarr;</span>
                   </button>
                   <button
                     type="button"
@@ -1390,7 +1380,7 @@ const Dashboard = () => {
                     onClick={handleLogout}
                   >
                     <span>Log out</span>
-                    <span aria-hidden="true">→</span>
+                    <span aria-hidden="true">&rarr;</span>
                   </button>
                 </div>
               ) : null}

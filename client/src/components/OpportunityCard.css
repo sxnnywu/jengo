@@ -31,6 +31,19 @@
   justify-content: center;
   font-size: 1.5rem;
   flex-shrink: 0;
+  overflow: hidden;
+}
+
+.company-logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.company-logo-fallback {
+  color: white;
+  font-weight: 700;
+  font-size: 1.25rem;
 }
 
 .card-meta {

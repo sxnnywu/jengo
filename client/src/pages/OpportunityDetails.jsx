@@ -108,7 +108,15 @@ const OpportunityDetails = () => {
     <div className="opportunity-details-page">
       <div className="opportunity-details-card">
         <div className="details-header">
-          <div className="details-logo">{opportunity.logo || '🏢'}</div>
+          <div className="details-logo">
+            {opportunity.logo ? (
+              <img src={opportunity.logo} alt="" className="details-logo-img" />
+            ) : (
+              <span className="details-logo-fallback">
+                {(opportunity.company || '?').charAt(0).toUpperCase()}
+              </span>
+            )}
+          </div>
           <div>
             <h1>{opportunity.title}</h1>
             <p className="details-company">{opportunity.company}</p>
@@ -143,7 +151,7 @@ const OpportunityDetails = () => {
 
         <div className="details-actions">
           <button className={`btn-save ${isSaved ? 'saved' : ''}`} onClick={handleSave}>
-            {isSaved ? '✓ Saved' : '🔖 Save'}
+            {isSaved ? 'Saved' : 'Save'}
           </button>
           <button className="btn-apply" onClick={handleApply} disabled={isClosed}>
             {isClosed ? 'Closed' : isVolunteer ? 'Apply Now' : 'Sign in to Apply'}

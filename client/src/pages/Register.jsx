@@ -428,7 +428,7 @@ const Register = () => {
                 className={`role-option ${formData.role === 'volunteer' ? 'active' : ''}`}
                 onClick={() => setFormData({ ...formData, role: 'volunteer' })}
               >
-                <span className="role-icon">👤</span>
+                <span className="role-icon" aria-hidden="true">V</span>
                 <div className="role-text">
                   <strong>Volunteer</strong>
                   <span>Find opportunities and build experience</span>
@@ -439,7 +439,7 @@ const Register = () => {
                 className={`role-option ${formData.role === 'nonprofit' ? 'active' : ''}`}
                 onClick={() => setFormData({ ...formData, role: 'nonprofit' })}
               >
-                <span className="role-icon">🏢</span>
+                <span className="role-icon" aria-hidden="true">N</span>
                 <div className="role-text">
                   <strong>Nonprofit</strong>
                   <span>Post opportunities and review applicants</span>

@@ -13,9 +13,9 @@ const VolunteerApplicationCard = ({ application, opportunity }) => {
 
   const getStatusBadge = (status) => {
     const badges = {
-      applied: { text: 'Applied', class: 'status-applied', icon: '⏳' },
-      accepted: { text: 'Accepted', class: 'status-accepted', icon: '✓' },
-      rejected: { text: 'Rejected', class: 'status-rejected', icon: '✗' }
+      applied: { text: 'Applied', class: 'status-applied', icon: '' },
+      accepted: { text: 'Accepted', class: 'status-accepted', icon: '' },
+      rejected: { text: 'Rejected', class: 'status-rejected', icon: '' }
     };
     return badges[status] || badges.applied;
   };
@@ -31,7 +31,7 @@ const VolunteerApplicationCard = ({ application, opportunity }) => {
           <p className="location">{opportunity?.location || 'Location'}</p>
         </div>
         <span className={`status-badge ${status.class}`}>
-          <span className="status-icon">{status.icon}</span>
+          {status.icon ? <span className="status-icon">{status.icon}</span> : null}
           {status.text}
         </span>
       </div>
@@ -55,7 +55,7 @@ const VolunteerApplicationCard = ({ application, opportunity }) => {
 
       {application.status === 'accepted' && (
         <div className="acceptance-message">
-          <p>🎉 Congratulations! You've been accepted for this opportunity.</p>
+          <p>Congratulations! You've been accepted for this opportunity.</p>
         </div>
       )}
 

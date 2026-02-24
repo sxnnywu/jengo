@@ -57,7 +57,7 @@ const CreateOpportunity = ({ onOpportunityCreated }) => {
       estimatedHours: parseInt(formData.estimatedHours),
       company: JSON.parse(localStorage.getItem('currentUser'))?.name || 'Your Organization',
       postedTime: 'Just now',
-      logo: '🏢',
+      logo: '',
       nonprofitId: JSON.parse(localStorage.getItem('currentUser'))?.id || 'np1',
       status: 'open'
     };

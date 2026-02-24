@@ -7,23 +7,17 @@ const Sidebar = ({ activeTab, setActiveTab, role = 'volunteer' }) => {
   const navigate = useNavigate();
 
   const volunteerMenuItems = [
-    { id: 'discover', label: 'Go Jengo', icon: '🐦' },
-    { id: 'matches', label: 'Matches', icon: '🤝' },
-    { id: 'opportunities', label: 'Opportunities', icon: '⊞' },
-    { id: 'saved', label: 'Saved Opportunities', icon: '🔖' },
-    { id: 'applications', label: 'My Applications', icon: '📋' },
-    { id: 'contacts', label: 'My Contacts', icon: '👤' },
-    { id: 'resources', label: 'Resources', icon: '💼' },
-    { id: 'profile', label: 'Profile', icon: '👤' }
+    { id: 'opportunities', label: 'Opportunities', icon: '' },
+    { id: 'shortlist', label: 'Shortlist', icon: '' },
+    { id: 'discover', label: 'Go Jengo', icon: '' },
+    { id: 'matches', label: 'Matches', icon: '' }
   ];
 
   const nonprofitMenuItems = [
-    { id: 'create', label: 'Create Opportunity', icon: '➕' },
-    { id: 'my-postings', label: 'My Opportunities', icon: '📝' },
-    { id: 'applicants', label: 'Applicants', icon: '👥' },
-    { id: 'matches', label: 'Matches', icon: '🤝' },
-    { id: 'resources', label: 'Resources', icon: '💼' },
-    { id: 'profile', label: 'Profile', icon: '👤' }
+    { id: 'create', label: 'Create Opportunity', icon: '' },
+    { id: 'my-postings', label: 'My Opportunities', icon: '' },
+    { id: 'applicants', label: 'Applicants', icon: '' },
+    { id: 'matches', label: 'Matches', icon: '' }
   ];
 
   const menuItems = role === 'volunteer' ? volunteerMenuItems : nonprofitMenuItems;
@@ -50,7 +44,7 @@ const Sidebar = ({ activeTab, setActiveTab, role = 'volunteer' }) => {
             className={`nav-item ${activeTab === item.id ? 'active' : ''}`}
             onClick={() => setActiveTab(item.id)}
           >
-            <span className="nav-icon">{item.icon}</span>
+            {item.icon ? <span className="nav-icon">{item.icon}</span> : null}
             <span className="nav-label">{item.label}</span>
           </button>
         ))}

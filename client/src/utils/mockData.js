@@ -13,7 +13,7 @@ export const mockOpportunities = [
     skillsRequired: ['Grant Writing', 'Research', 'Writing', 'Nonprofit', 'Communication'],
     estimatedHours: 20,
     category: 'Grant Writing',
-    logo: '🏥',
+    logo: null,
     nonprofitId: 'np1',
     status: 'open'
   },
@@ -29,7 +29,7 @@ export const mockOpportunities = [
     skillsRequired: ['Social Media', 'Content Creation', 'Marketing', 'Design', 'Communication'],
     estimatedHours: 15,
     category: 'Social Media',
-    logo: '📱',
+    logo: null,
     nonprofitId: 'np2',
     status: 'open'
   },
@@ -45,7 +45,7 @@ export const mockOpportunities = [
     skillsRequired: ['Outreach', 'Event Planning', 'Public Speaking', 'Community Engagement', 'Organization'],
     estimatedHours: 25,
     category: 'Outreach',
-    logo: '🌱',
+    logo: null,
     nonprofitId: 'np3',
     status: 'open'
   },
@@ -61,7 +61,7 @@ export const mockOpportunities = [
     skillsRequired: ['Web Development', 'HTML/CSS', 'JavaScript', 'WordPress', 'Design'],
     estimatedHours: 30,
     category: 'Administrative',
-    logo: '💻',
+    logo: null,
     nonprofitId: 'np4',
     status: 'open'
   },
@@ -77,7 +77,7 @@ export const mockOpportunities = [
     skillsRequired: ['Event Planning', 'Fundraising', 'Project Management', 'Organization', 'Networking'],
     estimatedHours: 20,
     category: 'Fundraising',
-    logo: '🎭',
+    logo: null,
     nonprofitId: 'np5',
     status: 'open'
   },
@@ -93,7 +93,7 @@ export const mockOpportunities = [
     skillsRequired: ['Data Analysis', 'Excel', 'Research', 'Analytics', 'Reporting'],
     estimatedHours: 18,
     category: 'Administrative',
-    logo: '📊',
+    logo: null,
     nonprofitId: 'np6',
     status: 'open'
   }
@@ -171,5 +171,5 @@ export const mockNonprofit = {
   website: 'https://communityhealth.org',
   socialLinks: ['https://linkedin.com/company/communityhealth'],
   typicalVolunteerHours: '10-20 hours per week',
-  logo: '🏥'
+  logo: null
 };

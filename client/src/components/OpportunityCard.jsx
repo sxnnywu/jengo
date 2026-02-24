@@ -53,7 +53,13 @@ const OpportunityCard = ({ opportunity, onApply, onClose, showApply = true, show
     <div className="opportunity-card" onClick={() => navigate(`/opportunities/${opportunity.id}`)}>
       <div className="card-header">
         <div className="company-logo">
-          {opportunity.logo || '🏢'}
+          {opportunity.logo ? (
+            <img src={opportunity.logo} alt="" className="company-logo-img" />
+          ) : (
+            <span className="company-logo-fallback">
+              {(opportunity.company || '?').charAt(0).toUpperCase()}
+            </span>
+          )}
         </div>
         <div className="card-meta">
           <span className="time-posted">{getTimeAgo(opportunity.postedTime)}</span>
@@ -94,7 +100,7 @@ const OpportunityCard = ({ opportunity, onApply, onClose, showApply = true, show
               onClick={handleSave}
               title={isSaved ? 'Unsave' : 'Save'}
             >
-              {isSaved ? '✓ Saved' : '🔖 Save'}
+              {isSaved ? 'Saved' : 'Save'}
             </button>
             {showApply && (
               <button className="btn-apply" onClick={handleApply} disabled={isClosed}>
