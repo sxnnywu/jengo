@@ -14,10 +14,13 @@ import {
   getAllTaskLikes,
   getPitchVideoUrl,
   likeVolunteerProfile,
-  resolveMediaUrl
+  resolveMediaUrl,
+  setPitchVideoUrl,
+  setProfilePhotoUrl
 } from '../utils/matchmaking';
+import FindVolunteersOverlay from '../components/FindVolunteersOverlay';
+import NetworkView from '../components/NetworkView';
 import './Dashboard.css';
-import { setPitchVideoUrl } from '../utils/matchmaking';
 import api from '../services/api';
 import jengoLogo from '../assets/jengologo.png';
 
@@ -111,6 +114,8 @@ const Dashboard = () => {
   const [npJengoQuery, setNpJengoQuery] = useState('');
   const [npJengoStatus, setNpJengoStatus] = useState('idle'); // idle|searching|done
   const [npJengoDeck, setNpJengoDeck] = useState([]);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [findVolunteersOpportunity, setFindVolunteersOpportunity] = useState(null);
 
   useEffect(() => {
     const isAuthenticated = localStorage.getItem('isAuthenticated');
@@ -268,7 +273,7 @@ const Dashboard = () => {
     const updated = [...opportunities, newOpp];
     setOpportunities(updated);
     localStorage.setItem('opportunities', JSON.stringify(updated));
-    setActiveTab('my-postings');
+    setShowCreateForm(false);
   };
 
   const handleCloseOpportunity = (opportunityId) => {
@@ -309,11 +314,17 @@ const Dashboard = () => {
           const merged = { ...currentUser, ...serverUser, id: serverUser?._id || currentUser?.id || currentUser?._id };
           localStorage.setItem('currentUser', JSON.stringify(merged));
           setCurrentUser(merged);
+          if (volunteerProfile.profilePhoto) {
+            setProfilePhotoUrl(userIdForUpdate, volunteerProfile.profilePhoto);
+          }
           alert('Profile updated.');
         })
         .catch(() => {
           localStorage.setItem('currentUser', JSON.stringify({ ...currentUser, ...updateData }));
           setCurrentUser({ ...currentUser, ...updateData });
+          if (volunteerProfile.profilePhoto) {
+            setProfilePhotoUrl(userIdForUpdate, volunteerProfile.profilePhoto);
+          }
           alert('Profile updated locally.');
         });
       return;
@@ -321,6 +332,9 @@ const Dashboard = () => {
 
     localStorage.setItem('currentUser', JSON.stringify({ ...currentUser, ...updateData }));
     setCurrentUser({ ...currentUser, ...updateData });
+    if (userIdForUpdate && volunteerProfile.profilePhoto) {
+      setProfilePhotoUrl(userIdForUpdate, volunteerProfile.profilePhoto);
+    }
     alert('Profile updated.');
   };
 
@@ -903,217 +917,71 @@ const Dashboard = () => {
 
   const renderNonprofitContent = () => {
     switch (activeTab) {
-      case 'create':
-        return <CreateOpportunity onOpportunityCreated={handleOpportunityCreated} />;
       case 'my-postings':
-        return myOpportunities.length > 0 ? (
-          <div className="opportunities-grid">
-            {myOpportunities.map((opp) => (
-              <OpportunityCard
-                key={opp.id}
-                opportunity={opp}
-                showApply={false}
-                onClose={handleCloseOpportunity}
-                showStatus
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="empty-state">
-            <h3>No Opportunities Posted</h3>
-            <p>Create your first opportunity to get started.</p>
-            <button 
-              className="btn btn-primary" 
-              onClick={() => setActiveTab('create')}
-              style={{ marginTop: '16px' }}
-            >
-              Create Opportunity
-            </button>
-          </div>
-        );
-      case 'applicants': {
-        // Show applications for nonprofit's opportunities
-        const myOppIds = myOpportunities.map(opp => opp.id);
-        const relevantApps = applications.filter(app => myOppIds.includes(app.opportunityId));
-        const isSearching = npJengoStatus === 'searching';
-        const deck = npJengoStatus === 'done' ? npJengoDeck : [];
-
-        const runNonprofitGoJengo = () => {
-          setNpJengoStatus('searching');
-          const kw = extractKeywords(
-            [
-              nonprofitProfile.neededSkills?.join(' ') || '',
-              nonprofitProfile.neededInterests?.join(' ') || '',
-              nonprofitProfile.matchingText || '',
-              npJengoQuery || ''
-            ].join(' ')
+        if (showCreateForm) {
+          return (
+            <div className="my-opportunities-page">
+              <button
+                type="button"
+                className="dash-btn dash-btn--ghost"
+                onClick={() => setShowCreateForm(false)}
+                style={{ marginBottom: '16px' }}
+              >
+                Back to My Opportunities
+              </button>
+              <CreateOpportunity onOpportunityCreated={handleOpportunityCreated} />
+            </div>
           );
-
-          const scored = relevantApps
-            .map((app) => {
-              const text = `${app.volunteerName} ${app.volunteerEmail} ${app.volunteerSchool} ${(app.volunteerSkills || []).join(' ')} ${app.opportunityTitle}`.toLowerCase();
-              const score =
-                kw.length === 0
-                  ? 1
-                  : kw.reduce((acc, k) => {
-                      if (!k) return acc;
-                      const needle = String(k).toLowerCase();
-                      if (text.includes(needle)) return acc + 1;
-                      return acc;
-                    }, 0);
-              return { app, score };
-            })
-            .filter((x) => x.score > 0)
-            .sort((a, b) => b.score - a.score)
-            .slice(0, 50)
-            .map((x) => x.app);
-
-          window.setTimeout(() => {
-            setNpJengoDeck(scored);
-            setNpJengoStatus('done');
-          }, 900);
-        };
-
-        return relevantApps.length > 0 ? (
-          <div className="jengo-page">
-            <div className="jengo-hero">
-              <div>
-                <h2 className="jengo-title">Go Jengo</h2>
-                <p className="jengo-subtitle">
-                  Tell Jengo what you want in a volunteer. The messenger bird will return with applicants that match.
-                </p>
-              </div>
-              <button type="button" className="dash-btn dash-btn--ghost" onClick={() => setActiveTab('matches')}>
-                View Matches
+        }
+        return (
+          <div className="my-opportunities-page">
+            <div className="my-opportunities-header">
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={() => setShowCreateForm(true)}
+              >
+                Create Opportunity
               </button>
             </div>
-
-            <div className="jengo-agent-card">
-              <div className="jengo-agent-row">
-                <img
-                  src={jengoLogo}
-                  alt="Jengo"
-                  className={`jengo-bird ${isSearching ? 'jengo-bird--fly' : ''}`}
-                />
-                <div className="jengo-agent-main">
-                  <label className="jengo-label" htmlFor="jengoQueryNp">
-                    What do you want in a volunteer?
-                  </label>
-                  <textarea
-                    id="jengoQueryNp"
-                    rows={3}
-                    value={npJengoQuery}
-                    onChange={(e) => setNpJengoQuery(e.target.value)}
-                    placeholder="Example: grant writing, event planning, public speaking, youth outreach…"
-                    className="jengo-textarea"
-                    disabled={isSearching}
+            {myOpportunities.length > 0 ? (
+              <div className="opportunities-grid">
+                {myOpportunities.map((opp) => (
+                  <OpportunityCard
+                    key={opp.id}
+                    opportunity={opp}
+                    showApply={false}
+                    onClose={handleCloseOpportunity}
+                    onFindVolunteers={(o) => setFindVolunteersOpportunity(o)}
+                    showStatus
                   />
-                  <div className="jengo-actions">
-                    <button type="button" className="dash-btn dash-btn--primary" onClick={runNonprofitGoJengo} disabled={isSearching}>
-                      {isSearching ? 'Sending…' : 'Go Jengo'}
-                    </button>
-                    <button
-                      type="button"
-                      className="dash-btn dash-btn--ghost"
-                      onClick={() => {
-                        setNpJengoQuery('');
-                        setNpJengoDeck([]);
-                        setNpJengoStatus('idle');
-                      }}
-                      disabled={isSearching}
-                    >
-                      Clear
-                    </button>
-                  </div>
-                  <div className="jengo-hint">
-                    Uses your “Skills you need” + “Focus areas” from your profile automatically.
-                  </div>
-                </div>
+                ))}
               </div>
-            </div>
-
-            {npJengoStatus === 'done' ? (
-              deck.length > 0 ? (
-                <SwipeDeck
-                  items={deck}
-                  getKey={(a) => a.id}
-                  emptyTitle="No more applicants"
-                  emptyBody="Try a different search to find more volunteers."
-                  onLike={(app) => likeVolunteerProfile(nonprofitId, app.volunteerId)}
-                  onPass={() => {}}
-                  renderCard={(app) => {
-                    const pitchUrl = getPitchVideoUrl(app.volunteerId);
-                    return (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', height: '100%' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px' }}>
-                          <div>
-                            <div style={{ fontWeight: 900, fontSize: '1.15rem', color: 'var(--text)' }}>{app.volunteerName}</div>
-                            <div style={{ color: 'var(--text-muted)', fontWeight: 800 }}>{app.volunteerEmail}</div>
-                            <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-                              Applied for: <span style={{ color: 'var(--text)' }}>{app.opportunityTitle}</span>
-                            </div>
-                          </div>
-                          <div style={{ textAlign: 'right' }}>
-                            <div style={{ fontWeight: 900, color: 'var(--text)' }}>{app.status.toUpperCase()}</div>
-                            <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Swipe to like/pass</div>
-                          </div>
-                        </div>
-
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                          {(app.volunteerSkills || []).slice(0, 10).map((s) => (
-                            <span
-                              key={s}
-                              style={{
-                                padding: '6px 10px',
-                                borderRadius: 999,
-                                background: 'var(--surface-subtle)',
-                                border: '1px solid var(--border)',
-                                fontWeight: 800,
-                                fontSize: '0.85rem',
-                                color: 'var(--text)'
-                              }}
-                            >
-                              {s}
-                            </span>
-                          ))}
-                        </div>
-
-                        <div style={{ marginTop: 'auto' }}>
-                          <div style={{ fontWeight: 900, color: 'var(--text)', marginBottom: '8px' }}>Pitch video</div>
-                          {pitchUrl ? (
-                            <video
-                              src={pitchUrl}
-                              controls
-                              style={{ width: '100%', borderRadius: '14px', border: '1px solid var(--border)', background: 'black' }}
-                            />
-                          ) : (
-                            <div style={{ color: 'var(--text-muted)' }}>No video uploaded yet.</div>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  }}
-                />
-              ) : (
-                <div className="empty-state">
-                  <h3>No applicants found</h3>
-                  <p>Try different keywords, or wait for more applications.</p>
-                </div>
-              )
             ) : (
               <div className="empty-state">
-                <h3>Ready when you are</h3>
-                <p>Click “Go Jengo” to find applicants that match your needs.</p>
+                <h3>No Opportunities Posted</h3>
+                <p>Create your first opportunity to get started.</p>
+                <button
+                  className="btn btn-primary"
+                  onClick={() => setShowCreateForm(true)}
+                  style={{ marginTop: '16px' }}
+                >
+                  Create Opportunity
+                </button>
               </div>
             )}
           </div>
-        ) : (
-          <div className="empty-state">
-            <h3>No Applications Yet</h3>
-            <p>Applications for your opportunities will appear here.</p>
+        );
+      case 'network':
+        return (
+          <div className="network-page">
+            <NetworkView
+              applications={applications}
+              myOpportunities={myOpportunities}
+              nonprofitId={nonprofitId}
+            />
           </div>
         );
-      }
       case 'matches': {
         const likesByNonprofit = getAllProfileLikes();
         const sentVolunteerIds = Array.isArray(likesByNonprofit?.[nonprofitId]) ? likesByNonprofit[nonprofitId] : [];
@@ -1313,9 +1181,8 @@ const Dashboard = () => {
       }
     } else {
       switch (activeTab) {
-        case 'create': return 'Create Opportunity';
         case 'my-postings': return 'My Opportunities';
-        case 'applicants': return 'Applicants';
+        case 'network': return 'Network';
         case 'matches': return 'Matches';
         case 'profile': return 'Organization Profile';
         default: return 'Dashboard';
@@ -1391,6 +1258,14 @@ const Dashboard = () => {
           {viewRole === 'volunteer' ? renderVolunteerContent() : renderNonprofitContent()}
         </div>
       </div>
+      {findVolunteersOpportunity && viewRole === 'nonprofit' && (
+        <FindVolunteersOverlay
+          opportunity={findVolunteersOpportunity}
+          applications={applications}
+          nonprofitId={nonprofitId}
+          onClose={() => setFindVolunteersOpportunity(null)}
+        />
+      )}
     </div>
   );
 };

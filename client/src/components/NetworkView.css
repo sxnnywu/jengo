@@ -1,0 +1,439 @@
+.network-view {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.network-search-toolbar {
+  flex-shrink: 0;
+  padding: 20px 24px;
+  background: var(--surface-subtle);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin-bottom: 20px;
+}
+
+.network-search-row {
+  margin-bottom: 16px;
+}
+
+.network-search-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.network-search-icon {
+  position: absolute;
+  left: 14px;
+  font-size: 1.1rem;
+  pointer-events: none;
+}
+
+.network-search-input {
+  width: 100%;
+  padding: 12px 16px 12px 44px;
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  font-size: 1rem;
+  font-family: inherit;
+  background: var(--surface);
+  color: var(--text);
+  transition: border-color 0.2s;
+}
+
+.network-search-input::placeholder {
+  color: var(--text-muted);
+}
+
+.network-search-input:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.network-filters-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 16px;
+}
+
+.network-filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.network-filter-group label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.network-filter-select {
+  padding: 10px 14px;
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  background: var(--surface);
+  color: var(--text);
+  min-width: 180px;
+}
+
+.network-filter-select:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.network-clear-filters {
+  padding: 10px 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-muted);
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.network-clear-filters:hover {
+  background: var(--surface-subtle-2);
+  color: var(--text);
+}
+
+.network-results-header {
+  margin-bottom: 16px;
+}
+
+.network-results-count {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.network-volunteers-list {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.network-volunteer-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-subtle);
+  flex-wrap: wrap;
+}
+
+.network-volunteer-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: var(--gradient-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.network-volunteer-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.network-volunteer-avatar-fallback {
+  color: white;
+  font-weight: 700;
+  font-size: 1.25rem;
+}
+
+.network-volunteer-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.network-volunteer-name {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--text);
+}
+
+.network-volunteer-email {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.network-volunteer-meta {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-top: 6px;
+}
+
+.network-volunteer-skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.network-volunteer-skill {
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--surface-subtle-2);
+  border: 1px solid var(--border);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.network-volunteer-skill.interest {
+  background: color-mix(in srgb, var(--primary) 15%, var(--surface));
+  border-color: color-mix(in srgb, var(--primary) 30%, var(--border));
+}
+
+.network-volunteer-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-end;
+  flex-shrink: 0;
+}
+
+.network-volunteer-card .btn-reach-out {
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: none;
+  background: var(--primary);
+  color: white;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.network-volunteer-card .btn-reach-out:hover {
+  background: var(--primary-hover);
+}
+
+.network-volunteer-card .btn-introduction {
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface-subtle);
+  color: var(--text);
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.network-volunteer-card .btn-introduction:hover {
+  background: var(--surface-subtle-2);
+}
+
+.btn-play-icon-svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.network-volunteer-video-wrap {
+  width: 100%;
+  margin-top: 12px;
+  position: relative;
+}
+
+.network-volunteer-video {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: black;
+}
+
+.network-volunteer-card .btn-close-video {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  font-size: 1.2rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.network-volunteer-card .btn-close-video:hover {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+.network-empty {
+  padding: 48px 24px;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.network-empty p {
+  margin: 0;
+  font-size: 1rem;
+}
+
+/* Reach Out modal */
+.network-reach-out-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 2rem;
+}
+
+.network-reach-out-panel {
+  background: var(--surface);
+  border-radius: 16px;
+  box-shadow: var(--shadow-md);
+  max-width: 440px;
+  width: 100%;
+  overflow: hidden;
+}
+
+.network-reach-out-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.network-reach-out-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.network-reach-out-close {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: transparent;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+}
+
+.network-reach-out-close:hover {
+  background: var(--surface-subtle);
+  color: var(--text);
+}
+
+.network-reach-out-body {
+  padding: 20px;
+}
+
+.network-reach-out-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-subtle);
+  margin-bottom: 16px;
+}
+
+.network-reach-out-form-group {
+  margin-bottom: 16px;
+}
+
+.network-reach-out-form-group label {
+  display: block;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.network-reach-out-select {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  background: var(--surface);
+  color: var(--text);
+}
+
+.network-reach-out-select:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.network-reach-out-note {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 80px;
+}
+
+.network-reach-out-note:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.network-reach-out-actions {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.network-reach-out-actions .btn-reach-out {
+  padding: 10px 24px;
+  border-radius: 8px;
+  border: none;
+  background: var(--primary);
+  color: white;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.network-reach-out-actions .btn-reach-out:hover:not(:disabled) {
+  background: var(--primary-hover);
+}
+
+.network-reach-out-actions .btn-reach-out:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

@@ -1,6 +1,25 @@
 import React, { useState } from 'react';
 import './CreateOpportunity.css';
 
+function extractKeywords(text, max = 20) {
+  const stop = new Set([
+    'a','an','and','are','as','at','be','but','by','for','from','has','have','i','in','is','it','its','of','on',
+    'or','our','so','that','the','their','they','this','to','was','we','were','with','you','your'
+  ]);
+  const tokens = (text || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, ' ')
+    .split(/\s+/)
+    .map((t) => t.trim())
+    .filter((t) => t.length >= 3 && !stop.has(t));
+  const counts = new Map();
+  for (const t of tokens) counts.set(t, (counts.get(t) || 0) + 1);
+  return [...counts.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, max)
+    .map(([k]) => k);
+}
+
 const CreateOpportunity = ({ onOpportunityCreated }) => {
   const [formData, setFormData] = useState({
     title: '',
@@ -42,6 +61,24 @@ const CreateOpportunity = ({ onOpportunityCreated }) => {
     }
   };
 
+  const handlePasteSkills = (e) => {
+    const pasted = e.clipboardData?.getData('text') || '';
+    if (!pasted.trim()) return;
+    const parts = pasted.split(/[,;\n]/).map((p) => p.trim()).filter(Boolean);
+    if (parts.length > 1) {
+      e.preventDefault();
+      const existing = new Set(formData.skillsRequired.map((s) => s.toLowerCase()));
+      const toAdd = parts.filter((p) => !existing.has(p.toLowerCase()));
+      if (toAdd.length > 0) {
+        setFormData({
+          ...formData,
+          skillsRequired: [...formData.skillsRequired, ...toAdd]
+        });
+        setCurrentSkill('');
+      }
+    }
+  };
+
   const handleRemoveSkill = (skill) => {
     setFormData({
       ...formData,
@@ -51,6 +88,13 @@ const CreateOpportunity = ({ onOpportunityCreated }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    const matchText = [
+      formData.description || '',
+      (formData.skillsRequired || []).join(' '),
+      formData.category || '',
+      formData.title || ''
+    ].join(' ');
+    const keywords = extractKeywords(matchText);
     const newOpportunity = {
       id: Date.now().toString(),
       ...formData,
@@ -59,7 +103,8 @@ const CreateOpportunity = ({ onOpportunityCreated }) => {
       postedTime: 'Just now',
       logo: '',
       nonprofitId: JSON.parse(localStorage.getItem('currentUser'))?.id || 'np1',
-      status: 'open'
+      status: 'open',
+      keywords
     };
     
     alert('Opportunity created successfully!');
@@ -172,7 +217,8 @@ const CreateOpportunity = ({ onOpportunityCreated }) => {
               value={currentSkill}
               onChange={(e) => setCurrentSkill(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && handleAddSkill(e)}
-              placeholder="Add a skill and press Enter"
+              onPaste={handlePasteSkills}
+              placeholder="Add a skill and press Enter (or paste comma-separated)"
             />
             <button type="button" onClick={handleAddSkill} className="btn-add-skill">
               Add

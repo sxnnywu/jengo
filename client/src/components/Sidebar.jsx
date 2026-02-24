@@ -14,9 +14,8 @@ const Sidebar = ({ activeTab, setActiveTab, role = 'volunteer' }) => {
   ];
 
   const nonprofitMenuItems = [
-    { id: 'create', label: 'Create Opportunity', icon: '' },
     { id: 'my-postings', label: 'My Opportunities', icon: '' },
-    { id: 'applicants', label: 'Applicants', icon: '' },
+    { id: 'network', label: 'Network', icon: '' },
     { id: 'matches', label: 'Matches', icon: '' }
   ];
 

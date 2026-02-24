@@ -34,6 +34,34 @@ export default function TagInput({
     setDraft('');
   };
 
+  const parseAndAddPasted = (text) => {
+    const parts = text.split(/[,;\n]/).map((p) => normalizeTag(p)).filter(Boolean);
+    const existing = new Set(normalizedValues.map((v) => v.toLowerCase()));
+    const toAdd = [];
+    for (const p of parts) {
+      if (toAdd.length + normalizedValues.length >= maxItems) break;
+      if (!existing.has(p.toLowerCase())) {
+        toAdd.push(p);
+        existing.add(p.toLowerCase());
+      }
+    }
+    if (toAdd.length > 0) {
+      onChange([...normalizedValues, ...toAdd]);
+    }
+    return toAdd;
+  };
+
+  const onPaste = (e) => {
+    const pasted = e.clipboardData?.getData('text') || '';
+    if (!pasted.trim()) return;
+    const parts = pasted.split(/[,;\n]/).map((p) => normalizeTag(p)).filter(Boolean);
+    if (parts.length > 1) {
+      e.preventDefault();
+      const added = parseAndAddPasted(pasted);
+      setDraft('');
+    }
+  };
+
   const removeTag = (idx) => {
     const next = normalizedValues.filter((_, i) => i !== idx);
     onChange(next);
@@ -88,6 +116,7 @@ export default function TagInput({
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={onKeyDown}
+          onPaste={onPaste}
           placeholder={normalizedValues.length === 0 ? placeholder : ''}
           list={listId}
         />

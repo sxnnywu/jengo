@@ -307,6 +307,23 @@
   overflow-y: auto;
 }
 
+.my-opportunities-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.network-page {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.my-opportunities-header {
+  margin-bottom: 8px;
+}
+
 .shortlist-page {
   display: flex;
   flex-direction: column;

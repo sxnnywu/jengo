@@ -2,6 +2,8 @@ const TASK_LIKES_KEY = 'taskLikesByVolunteer';
 const TASK_SEEN_KEY = 'taskSeenByVolunteer';
 const PROFILE_LIKES_KEY = 'profileLikesByNonprofit';
 const PITCH_VIDEO_KEY = 'pitchVideoByVolunteerId';
+const OUTREACH_MESSAGES_KEY = 'outreachMessages';
+const PROFILE_PHOTO_KEY = 'profilePhotoByVolunteerId';
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://jengo.onrender.com/api';
 const API_ORIGIN = API_BASE_URL.replace(/\/api\/?$/, '');
 
@@ -89,6 +91,35 @@ export function getPitchVideoUrl(volunteerId) {
   const all = readJson(PITCH_VIDEO_KEY, {});
   const url = typeof all[volunteerId] === 'string' ? all[volunteerId] : '';
   return resolveMediaUrl(url);
+}
+
+export function getProfilePhotoUrl(volunteerId) {
+  const all = readJson(PROFILE_PHOTO_KEY, {});
+  const url = typeof all[volunteerId] === 'string' ? all[volunteerId] : '';
+  return resolveMediaUrl(url);
+}
+
+export function setProfilePhotoUrl(volunteerId, url) {
+  const all = readJson(PROFILE_PHOTO_KEY, {});
+  all[volunteerId] = url;
+  writeJson(PROFILE_PHOTO_KEY, all);
+}
+
+export function getOutreachMessages() {
+  return readJson(OUTREACH_MESSAGES_KEY, {});
+}
+
+export function setOutreachMessage(nonprofitId, volunteerId, opportunityId, message) {
+  const all = readJson(OUTREACH_MESSAGES_KEY, {});
+  const key = `${nonprofitId}:${volunteerId}:${opportunityId}`;
+  all[key] = message || '';
+  writeJson(OUTREACH_MESSAGES_KEY, all);
+}
+
+export function getOutreachMessage(nonprofitId, volunteerId, opportunityId) {
+  const all = readJson(OUTREACH_MESSAGES_KEY, {});
+  const key = `${nonprofitId}:${volunteerId}:${opportunityId}`;
+  return all[key] || '';
 }
 
 export function resolveMediaUrl(url) {

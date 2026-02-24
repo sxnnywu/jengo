@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './OpportunityCard.css';
 
-const OpportunityCard = ({ opportunity, onApply, onClose, showApply = true, showStatus = true }) => {
+const OpportunityCard = ({ opportunity, onApply, onClose, onFindVolunteers, showApply = true, showStatus = true }) => {
   const [isSaved, setIsSaved] = useState(() => {
     const saved = JSON.parse(localStorage.getItem('savedOpportunities') || '[]');
     return saved.includes(opportunity.id);
@@ -37,11 +37,21 @@ const OpportunityCard = ({ opportunity, onApply, onClose, showApply = true, show
     }
   };
 
+  const handleFindVolunteers = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (onFindVolunteers) {
+      onFindVolunteers(opportunity);
+    }
+  };
+
   const getTimeAgo = (timeString) => {
     return timeString.toLowerCase();
   };
 
-  const skills = opportunity.skillsRequired || opportunity.skills || [];
+  const allSkills = opportunity.skillsRequired || opportunity.skills || [];
+  const skills = allSkills.slice(0, 3);
+  const remainingCount = allSkills.length - 3;
   const isClosed = opportunity.status === 'closed';
   const workMode =
     opportunity.workMode ||
@@ -87,6 +97,9 @@ const OpportunityCard = ({ opportunity, onApply, onClose, showApply = true, show
               {skill}
             </span>
           ))}
+          {remainingCount > 0 && (
+            <span className="skill-tag skill-tag--more">+{remainingCount} more</span>
+          )}
         </div>
 
         <div className="card-footer">
@@ -110,6 +123,11 @@ const OpportunityCard = ({ opportunity, onApply, onClose, showApply = true, show
             {!showApply && onClose && (
               <button className="btn-apply" onClick={handleClose} disabled={isClosed}>
                 {isClosed ? 'Closed' : 'Close'}
+              </button>
+            )}
+            {onFindVolunteers && (
+              <button type="button" className="btn-find-volunteers" onClick={handleFindVolunteers}>
+                Find Volunteers
               </button>
             )}
           </div>

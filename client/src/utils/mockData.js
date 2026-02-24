@@ -160,6 +160,15 @@ export const mockUser = {
   volunteerForm: ''
 };
 
+export const mockVolunteers = [
+  { id: 'vol1', name: 'Sarah Johnson', email: 'sarah@example.com', school: 'Lincoln High School', skills: ['Writing', 'Research', 'Communication'], interests: ['Education', 'Healthcare'] },
+  { id: 'vol2', name: 'Michael Chen', email: 'michael@example.com', school: 'Riverside University', skills: ['Grant Writing', 'Research', 'Nonprofit'], interests: ['Community', 'Education'] },
+  { id: 'vol3', name: 'Emily Rodriguez', email: 'emily@example.com', school: 'City College', skills: ['Social Media', 'Content Creation', 'Design'], interests: ['Youth', 'Technology'] },
+  { id: 'vol4', name: 'David Kim', email: 'david@example.com', school: 'State University', skills: ['Web Development', 'JavaScript', 'Design'], interests: ['Technology', 'Education'] },
+  { id: 'vol5', name: 'Jessica Martinez', email: 'jessica@example.com', school: 'Community College', skills: ['Event Planning', 'Outreach', 'Public Speaking'], interests: ['Community', 'Youth'] },
+  { id: 'vol6', name: 'Alex Thompson', email: 'alex@example.com', school: 'Tech Institute', skills: ['Data Analysis', 'Excel', 'Research'], interests: ['Technology', 'Healthcare'] }
+];
+
 export const mockNonprofit = {
   id: 'np1',
   name: 'Community Health Foundation',
