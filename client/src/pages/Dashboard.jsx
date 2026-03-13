@@ -9,11 +9,6 @@ import SwipeDeck from '../components/SwipeDeck';
 import TagInput from '../components/TagInput';
 import { normalizeOpportunity, normalizeApplication } from '../utils/apiTransform';
 import {
-  computeMatchedNonprofits,
-  getAllProfileLikes,
-  getAllTaskLikes,
-  getPitchVideoUrl,
-  likeVolunteerProfile,
   resolveMediaUrl,
   setPitchVideoUrl,
   setProfilePhotoUrl
@@ -50,6 +45,45 @@ function nowIso() {
 
 function makeId(prefix) {
   return `${prefix}${Date.now()}`;
+}
+
+function normalizeTokens(values) {
+  return (values || [])
+    .flatMap((value) =>
+      String(value || '')
+        .toLowerCase()
+        .split(/[^a-z0-9]+/g)
+        .map((part) => part.trim())
+        .filter(Boolean)
+    );
+}
+
+function countTokenOverlap(leftValues, rightValues) {
+  const left = new Set(normalizeTokens(leftValues));
+  const right = new Set(normalizeTokens(rightValues));
+  if (left.size === 0 || right.size === 0) return 0;
+
+  let count = 0;
+  left.forEach((token) => {
+    if (right.has(token)) count += 1;
+  });
+  return count;
+}
+
+function buildOpportunitySignals(opportunity) {
+  return [
+    ...(opportunity?.skillsRequired || []),
+    ...(opportunity?.keywords || []),
+    opportunity?.category || '',
+    opportunity?.title || '',
+    ...extractKeywords(opportunity?.description || '', 16)
+  ];
+}
+
+function scoreProfileForOpportunity(profile, opportunity) {
+  const skillScore = countTokenOverlap(profile?.skills || [], opportunity?.skillsRequired || []);
+  const interestScore = countTokenOverlap(profile?.interests || [], buildOpportunitySignals(opportunity));
+  return skillScore * 3 + interestScore;
 }
 
 const Dashboard = () => {
@@ -110,6 +144,8 @@ const Dashboard = () => {
   const [findVolunteersOpportunity, setFindVolunteersOpportunity] = useState(null);
   const [opportunityCreatedMessage, setOpportunityCreatedMessage] = useState(null);
   const [volunteers, setVolunteers] = useState([]);
+  const [matchesRefreshing, setMatchesRefreshing] = useState(false);
+  const [matchesUpdatedAt, setMatchesUpdatedAt] = useState('');
 
   useEffect(() => {
     const isAuthenticated = localStorage.getItem('isAuthenticated');
@@ -225,6 +261,57 @@ const Dashboard = () => {
 
   const volunteerId = volunteerContextId;
   const nonprofitId = nonprofitContextId;
+
+  const recalculateMatches = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    const role = currentUser?.role || viewRole;
+    setMatchesRefreshing(true);
+    try {
+      if (role === 'nonprofit') {
+        const [myOppData, volunteersData] = await Promise.all([
+          api.getMyOpportunities(),
+          api.getVolunteers()
+        ]);
+        setOpportunities((myOppData.opportunities || []).map(normalizeOpportunity));
+        setVolunteers(volunteersData.volunteers || []);
+      } else {
+        const [oppData, meData] = await Promise.all([
+          api.getOpportunities(),
+          api.getCurrentUser()
+        ]);
+        setOpportunities((oppData.opportunities || []).map(normalizeOpportunity));
+
+        if (meData?.user) {
+          const refreshedUser = {
+            ...(currentUser || {}),
+            ...meData.user,
+            id: meData.user._id || currentUser?.id || currentUser?._id
+          };
+          setCurrentUser(refreshedUser);
+          localStorage.setItem('currentUser', JSON.stringify(refreshedUser));
+
+          setVolunteerProfile((prev) => ({
+            ...prev,
+            skills: meData.user.skills || [],
+            interests: meData.user.interests || [],
+            matchingText: meData.user?.matchingProfile?.text || ''
+          }));
+        }
+      }
+      setMatchesUpdatedAt(nowIso());
+    } catch (error) {
+      console.error('Failed to refresh matches:', error);
+    } finally {
+      setMatchesRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab !== 'matches') return;
+    recalculateMatches();
+  }, [activeTab, viewRole, currentUser?._id, currentUser?.role]);
 
   const runVolunteerGoJengo = () => {
     setVolJengoStatus('searching');
@@ -616,89 +703,65 @@ const Dashboard = () => {
         );
       }
       case 'matches': {
-        const likesByNonprofit = getAllProfileLikes();
-        const receivedNonprofitIds = Object.entries(likesByNonprofit)
-          .filter(([, volIds]) => Array.isArray(volIds) && volIds.includes(volunteerId))
-          .map(([npId]) => npId);
+        const openOpportunities = opportunities.filter((opp) => opp.status !== 'closed');
+        const matchedOpportunities = openOpportunities
+          .map((opp) => ({
+            opp,
+            score: scoreProfileForOpportunity(volunteerProfile, opp)
+          }))
+          .filter((entry) => entry.score > 0)
+          .sort((a, b) => b.score - a.score)
+          .slice(0, 24);
 
-        const taskLikesByVolunteer = getAllTaskLikes();
-        const likedOppIds = Array.isArray(taskLikesByVolunteer?.[volunteerId]) ? taskLikesByVolunteer[volunteerId] : [];
-        const sentNonprofitIds = [
-          ...new Set(
-            likedOppIds
-              .map((oppId) => opportunities.find((o) => o.id === oppId))
-              .filter(Boolean)
-              .map((o) => o.nonprofitId)
-          )
-        ];
-
-        const mutualNonprofitIds = computeMatchedNonprofits({ volunteerId, opportunities });
-        const mutualOpps = opportunities.filter((opp) => mutualNonprofitIds.includes(opp.nonprofitId));
-
-        const npName = (npId) => opportunities.find((o) => o.nonprofitId === npId)?.company || npId;
+        const lastUpdatedLabel = matchesUpdatedAt
+          ? new Date(matchesUpdatedAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
+          : 'Not refreshed yet';
 
         return (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div>
               <h2 style={{ margin: 0, color: 'var(--text)' }}>Matches</h2>
               <p style={{ marginTop: '6px', marginBottom: 0, color: 'var(--text-muted)' }}>
-                Sent likes, received likes, and mutual matches.
+                Live skill matches based on your profile and current open opportunities.
               </p>
             </div>
 
             <div className="profile-section" style={{ padding: 20 }}>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 14 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
                 <div>
-                  <div style={{ fontWeight: 900, color: 'var(--text)' }}>Sent</div>
-                  <div style={{ color: 'var(--text-muted)', fontWeight: 800 }}>{sentNonprofitIds.length} nonprofits</div>
-                  <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 6 }}>
-                    {sentNonprofitIds.slice(0, 8).map((id) => (
-                      <div key={id} style={{ fontWeight: 800, color: 'var(--text)' }}>
-                        {npName(id)}
-                      </div>
-                    ))}
-                    {sentNonprofitIds.length === 0 ? <div style={{ color: 'var(--text-muted)' }}>No likes yet.</div> : null}
+                  <div style={{ fontWeight: 900, color: 'var(--text)', fontSize: '1.1rem' }}>
+                    {matchedOpportunities.length} opportunity matches
+                  </div>
+                  <div style={{ color: 'var(--text-muted)', marginTop: 4 }}>
+                    Last refreshed: {lastUpdatedLabel}
                   </div>
                 </div>
-
-                <div>
-                  <div style={{ fontWeight: 900, color: 'var(--text)' }}>Received</div>
-                  <div style={{ color: 'var(--text-muted)', fontWeight: 800 }}>{receivedNonprofitIds.length} nonprofits</div>
-                  <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 6 }}>
-                    {receivedNonprofitIds.slice(0, 8).map((id) => (
-                      <div key={id} style={{ fontWeight: 800, color: 'var(--text)' }}>
-                        {npName(id)}
-                      </div>
-                    ))}
-                    {receivedNonprofitIds.length === 0 ? <div style={{ color: 'var(--text-muted)' }}>No incoming likes yet.</div> : null}
-                  </div>
-                </div>
-
-                <div>
-                  <div style={{ fontWeight: 900, color: 'var(--text)' }}>Mutual</div>
-                  <div style={{ color: 'var(--text-muted)', fontWeight: 800 }}>{mutualNonprofitIds.length} matches</div>
-                  <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 6 }}>
-                    {mutualNonprofitIds.slice(0, 8).map((id) => (
-                      <div key={id} style={{ fontWeight: 800, color: 'var(--text)' }}>
-                        {npName(id)}
-                      </div>
-                    ))}
-                    {mutualNonprofitIds.length === 0 ? <div style={{ color: 'var(--text-muted)' }}>No mutual matches yet.</div> : null}
-                  </div>
-                </div>
+                <button
+                  type="button"
+                  className="dash-btn dash-btn--ghost"
+                  onClick={recalculateMatches}
+                  disabled={matchesRefreshing}
+                >
+                  {matchesRefreshing ? 'Recalculating...' : 'Recalculate Matches'}
+                </button>
               </div>
             </div>
 
-            {mutualOpps.length > 0 ? (
+            {matchedOpportunities.length > 0 ? (
               <div className="opportunities-grid">
-                {mutualOpps.map((opp) => (
-                  <OpportunityCard key={opp.id} opportunity={opp} onApply={() => handleApply(opp.id)} showStatus />
+                {matchedOpportunities.map(({ opp, score }) => (
+                  <div key={opp.id} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    <OpportunityCard opportunity={opp} onApply={() => handleApply(opp.id)} showStatus />
+                    <div style={{ color: 'var(--text-muted)', fontWeight: 700, fontSize: '0.9rem' }}>
+                      Match score: {score}
+                    </div>
+                  </div>
                 ))}
               </div>
             ) : (
               <div className="empty-state">
-                <h3>No mutual matches yet</h3>
-                <p>Like a few tasks and wait for nonprofits to like your profile back.</p>
+                <h3>No skill matches yet</h3>
+                <p>Update your skills/interests or recalculate after new opportunities are posted.</p>
               </div>
             )}
           </div>
@@ -1063,72 +1126,98 @@ const Dashboard = () => {
           </div>
         );
       case 'matches': {
-        const likesByNonprofit = getAllProfileLikes();
-        const sentVolunteerIds = Array.isArray(likesByNonprofit?.[nonprofitId]) ? likesByNonprofit[nonprofitId] : [];
+        const openMyOpportunities = myOpportunities.filter((opp) => opp.status !== 'closed');
+        const matchedVolunteers = volunteers
+          .map((volunteer) => {
+            const scoredOpportunities = openMyOpportunities
+              .map((opp) => ({ opp, score: scoreProfileForOpportunity(volunteer, opp) }))
+              .filter((entry) => entry.score > 0)
+              .sort((a, b) => b.score - a.score);
 
-        const taskLikesByVolunteer = getAllTaskLikes();
-        const myOppIdsSet = new Set(myOpportunities.map((o) => o.id));
-        const receivedVolunteerIds = Object.entries(taskLikesByVolunteer)
-          .filter(([, oppIds]) => Array.isArray(oppIds) && oppIds.some((id) => myOppIdsSet.has(id)))
-          .map(([volId]) => volId);
+            if (scoredOpportunities.length === 0) return null;
 
-        const sentSet = new Set(sentVolunteerIds);
-        const mutualVolunteerIds = receivedVolunteerIds.filter((id) => sentSet.has(id));
+            const bestScore = scoredOpportunities[0].score;
+            const topTitles = scoredOpportunities
+              .filter((entry) => entry.score === bestScore)
+              .slice(0, 3)
+              .map((entry) => entry.opp.title);
 
-        const byVolunteerId = new Map(applications.map((a) => [a.volunteerId, a]));
-        const labelFor = (volId) => byVolunteerId.get(volId)?.volunteerName || volId;
+            return {
+              volunteer,
+              bestScore,
+              topTitles,
+              totalMatchedOpportunities: scoredOpportunities.length
+            };
+          })
+          .filter(Boolean)
+          .sort((a, b) => b.bestScore - a.bestScore)
+          .slice(0, 50);
+
+        const lastUpdatedLabel = matchesUpdatedAt
+          ? new Date(matchesUpdatedAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
+          : 'Not refreshed yet';
 
         return (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div>
               <h2 style={{ margin: 0, color: 'var(--text)' }}>Matches</h2>
               <p style={{ marginTop: '6px', marginBottom: 0, color: 'var(--text-muted)' }}>
-                Sent likes, received likes, and mutual matches.
+                Live volunteer matches based on overlap with your open opportunities.
               </p>
             </div>
 
             <div className="profile-section" style={{ padding: 20 }}>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 14 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
                 <div>
-                  <div style={{ fontWeight: 900, color: 'var(--text)' }}>Sent</div>
-                  <div style={{ color: 'var(--text-muted)', fontWeight: 800 }}>{sentVolunteerIds.length} volunteers</div>
-                  <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 6 }}>
-                    {sentVolunteerIds.slice(0, 10).map((id) => (
-                      <div key={id} style={{ fontWeight: 800, color: 'var(--text)' }}>
-                        {labelFor(id)}
-                      </div>
-                    ))}
-                    {sentVolunteerIds.length === 0 ? <div style={{ color: 'var(--text-muted)' }}>No likes yet.</div> : null}
+                  <div style={{ fontWeight: 900, color: 'var(--text)', fontSize: '1.1rem' }}>
+                    {matchedVolunteers.length} volunteer matches
+                  </div>
+                  <div style={{ color: 'var(--text-muted)', marginTop: 4 }}>
+                    Last refreshed: {lastUpdatedLabel}
                   </div>
                 </div>
-
-                <div>
-                  <div style={{ fontWeight: 900, color: 'var(--text)' }}>Received</div>
-                  <div style={{ color: 'var(--text-muted)', fontWeight: 800 }}>{receivedVolunteerIds.length} volunteers</div>
-                  <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 6 }}>
-                    {receivedVolunteerIds.slice(0, 10).map((id) => (
-                      <div key={id} style={{ fontWeight: 800, color: 'var(--text)' }}>
-                        {labelFor(id)}
-                      </div>
-                    ))}
-                    {receivedVolunteerIds.length === 0 ? <div style={{ color: 'var(--text-muted)' }}>No incoming likes yet.</div> : null}
-                  </div>
-                </div>
-
-                <div>
-                  <div style={{ fontWeight: 900, color: 'var(--text)' }}>Mutual</div>
-                  <div style={{ color: 'var(--text-muted)', fontWeight: 800 }}>{mutualVolunteerIds.length} matches</div>
-                  <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 6 }}>
-                    {mutualVolunteerIds.slice(0, 10).map((id) => (
-                      <div key={id} style={{ fontWeight: 800, color: 'var(--text)' }}>
-                        {labelFor(id)}
-                      </div>
-                    ))}
-                    {mutualVolunteerIds.length === 0 ? <div style={{ color: 'var(--text-muted)' }}>No mutual matches yet.</div> : null}
-                  </div>
-                </div>
+                <button
+                  type="button"
+                  className="dash-btn dash-btn--ghost"
+                  onClick={recalculateMatches}
+                  disabled={matchesRefreshing}
+                >
+                  {matchesRefreshing ? 'Recalculating...' : 'Recalculate Matches'}
+                </button>
               </div>
             </div>
+
+            {openMyOpportunities.length === 0 ? (
+              <div className="empty-state">
+                <h3>Create an opportunity first</h3>
+                <p>Volunteer matching starts after you post at least one open opportunity with required skills.</p>
+              </div>
+            ) : matchedVolunteers.length > 0 ? (
+              <div className="applications-grid">
+                {matchedVolunteers.map((entry) => (
+                  <div key={entry.volunteer.id} className="profile-section" style={{ padding: 16 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center' }}>
+                      <div>
+                        <div style={{ fontWeight: 900, color: 'var(--text)' }}>{entry.volunteer.name || 'Volunteer'}</div>
+                        <div style={{ color: 'var(--text-muted)' }}>{entry.volunteer.location || 'Location not provided'}</div>
+                      </div>
+                      <div style={{ fontWeight: 900, color: 'var(--text)' }}>Score {entry.bestScore}</div>
+                    </div>
+                    <div style={{ marginTop: 8, color: 'var(--text-muted)' }}>
+                      Best-fit opportunities: {entry.topTitles.join(', ')}
+                    </div>
+                    <div style={{ marginTop: 6, color: 'var(--text-muted)' }}>
+                      Matches across {entry.totalMatchedOpportunities} posted opportunit{entry.totalMatchedOpportunities === 1 ? 'y' : 'ies'}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="empty-state">
+                <h3>No volunteer matches yet</h3>
+                <p>Try adding more specific required skills to your opportunities, then recalculate.</p>
+              </div>
+            )}
           </div>
         );
       }
