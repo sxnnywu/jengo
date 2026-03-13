@@ -148,8 +148,8 @@ const Dashboard = () => {
   const [matchesUpdatedAt, setMatchesUpdatedAt] = useState('');
 
   useEffect(() => {
-    const isAuthenticated = localStorage.getItem('isAuthenticated');
-    if (!isAuthenticated) {
+    const token = localStorage.getItem('token');
+    if (!token) {
       navigate('/login');
       return;
     }

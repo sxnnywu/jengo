@@ -27,6 +27,10 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error('Error fetching user:', error);
       localStorage.removeItem('token');
+      localStorage.removeItem('isAuthenticated');
+      localStorage.removeItem('currentUser');
+      setUser(null);
+      setIsAuthenticated(false);
     } finally {
       setLoading(false);
     }
@@ -67,6 +71,8 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('isAuthenticated');
+    localStorage.removeItem('currentUser');
     setUser(null);
     setIsAuthenticated(false);
   };

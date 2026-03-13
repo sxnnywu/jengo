@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { resolveMediaUrl } from '../utils/matchmaking';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import api from '../services/api';
 import { normalizeOpportunity } from '../utils/apiTransform';
@@ -118,7 +119,7 @@ const OpportunityDetails = () => {
         <div className="details-header">
           <div className="details-logo">
             {opportunity.logo ? (
-              <img src={opportunity.logo} alt="" className="details-logo-img" />
+              <img src={resolveMediaUrl(opportunity.logo)} alt="" className="details-logo-img" />
             ) : (
               <span className="details-logo-fallback">
                 {(opportunity.company || '?').charAt(0).toUpperCase()}

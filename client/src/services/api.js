@@ -62,7 +62,11 @@ const api = {
     const response = await fetch(`${API_BASE_URL}/auth/me`, {
       headers: { Authorization: `Bearer ${token}` }
     });
-    return response.json();
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data?.message || `Failed to fetch current user (${response.status})`);
+    }
+    return data;
   },
 
   sendContactMessage: async (messageData) => {

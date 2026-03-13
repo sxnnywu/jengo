@@ -4,7 +4,11 @@ const PROFILE_LIKES_KEY = 'profileLikesByNonprofit';
 const PITCH_VIDEO_KEY = 'pitchVideoByVolunteerId';
 const OUTREACH_MESSAGES_KEY = 'outreachMessages';
 const PROFILE_PHOTO_KEY = 'profilePhotoByVolunteerId';
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://jengo.onrender.com/api';
+const DEFAULT_DEV_API = 'http://localhost:8000/api';
+const DEFAULT_PROD_API = 'https://jengo.onrender.com/api';
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL ||
+  (import.meta.env.DEV ? DEFAULT_DEV_API : DEFAULT_PROD_API);
 const API_ORIGIN = API_BASE_URL.replace(/\/api\/?$/, '');
 
 function readJson(key, fallback) {
@@ -122,8 +126,11 @@ export function getOutreachMessage(nonprofitId, volunteerId, opportunityId) {
   return all[key] || '';
 }
 
+// Placeholder to prevent img/video from making invalid requests (avoids ERR_FILE_NOT_FOUND)
+const EMPTY_MEDIA_PLACEHOLDER = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="1" height="1"%3E%3C/svg%3E';
+
 export function resolveMediaUrl(url) {
-  if (!url) return '';
+  if (!url || typeof url !== 'string' || url === 'undefined' || url === 'null') return EMPTY_MEDIA_PLACEHOLDER;
   if (url.startsWith('blob:')) return url;
   if (url.startsWith('http://') || url.startsWith('https://')) return url;
   if (url.startsWith('/')) return `${API_ORIGIN}${url}`;

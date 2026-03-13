@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { resolveMediaUrl } from '../utils/matchmaking';
 import './OpportunityCard.css';
 
 const OpportunityCard = ({ opportunity, onApply, onClose, onFindVolunteers, showApply = true, showStatus = true }) => {
@@ -64,7 +65,7 @@ const OpportunityCard = ({ opportunity, onApply, onClose, onFindVolunteers, show
       <div className="card-header">
         <div className="company-logo">
           {opportunity.logo ? (
-            <img src={opportunity.logo} alt="" className="company-logo-img" />
+            <img src={resolveMediaUrl(opportunity.logo)} alt="" className="company-logo-img" />
           ) : (
             <span className="company-logo-fallback">
               {(opportunity.company || '?').charAt(0).toUpperCase()}
