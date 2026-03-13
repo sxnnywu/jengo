@@ -119,6 +119,15 @@ If port 5000 or 5173 is already in use:
 1. **Change server port**: Update `PORT` in `server/.env`
 2. **Change client port**: Vite will automatically use the next available port, or specify in `vite.config.js`
 
+### Cross-Device Visibility (Volunteer Not Seeing Nonprofit's Opportunities)
+
+If a nonprofit creates an opportunity on one device but a volunteer on another device doesn't see it:
+
+- **Both devices must use the same backend and database.** Each local dev server has its own in-memory MongoDB, so data is not shared.
+- **Solution**: Use a shared backend:
+  1. **Deployed app**: Both users access the same deployed URL (e.g. `jengo-jet.vercel.app`) so they hit the same backend.
+  2. **MongoDB Atlas**: Set `MONGODB_URI` in `server/.env` to your Atlas connection string. Run the server on one machine (or deploy it), and set `VITE_API_BASE_URL` on all clients to point to that server's URL.
+
 ### Common Issues
 
 - **"Cannot find module"**: Run `npm install` in the respective directory

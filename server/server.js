@@ -55,8 +55,8 @@ const connectDB = async () => {
         console.log('Using local MongoDB. Set MONGODB_URI in .env for cloud persistence (e.g. MongoDB Atlas).');
       }
     } catch (error) {
-      if (configuredUri) throw error;
-      console.warn('Local MongoDB not available. Starting in-memory MongoDB (data is lost on restart).');
+      console.warn('MongoDB connection failed:', error.message);
+      console.warn('Falling back to in-memory MongoDB (data is lost on restart).');
       console.warn('For persistence: run MongoDB locally or set MONGODB_URI in server/.env (see .env.example)');
 
       const mongod = await MongoMemoryServer.create();

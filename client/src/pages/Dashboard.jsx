@@ -299,7 +299,8 @@ const Dashboard = () => {
   };
 
   const handleOpportunityCreated = (newOpp) => {
-    setOpportunities((prev) => [...prev, newOpp]);
+    const enriched = { ...newOpp, company: newOpp.company || currentUser?.name || 'Organization' };
+    setOpportunities((prev) => [...prev, enriched]);
     setShowCreateForm(false);
     setOpportunityCreatedMessage(newOpp.title);
     setTimeout(() => setOpportunityCreatedMessage(null), 5000);

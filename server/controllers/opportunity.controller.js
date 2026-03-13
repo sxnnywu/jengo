@@ -44,7 +44,9 @@ export const createOpportunity = async (req, res) => {
       keywords
     });
 
-    res.status(201).json({ opportunity });
+    const populated = await Opportunity.findById(opportunity._id)
+      .populate('nonprofit', 'name username organizationLogo');
+    res.status(201).json({ opportunity: populated });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -99,6 +101,7 @@ export const getMyOpportunities = async (req, res) => {
     }
 
     const opportunities = await Opportunity.find({ nonprofit: req.user._id })
+      .populate('nonprofit', 'name username organizationLogo')
       .sort({ createdAt: -1 });
 
     res.json({ opportunities });
@@ -126,7 +129,8 @@ export const updateOpportunity = async (req, res) => {
       req.params.id,
       req.body,
       { new: true, runValidators: true }
-    );
+    )
+      .populate('nonprofit', 'name username organizationLogo');
 
     res.json({ opportunity: updatedOpportunity });
   } catch (error) {

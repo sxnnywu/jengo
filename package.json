@@ -4,9 +4,9 @@
   "description": "A C2C volunteer marketplace - MERN Stack",
   "private": true,
   "scripts": {
-    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
-    "dev:server": "cd server && npm run dev",
-    "dev:client": "cd client && npm run dev",
+    "dev": "PATH=\"/usr/local/bin:/opt/homebrew/bin:$PATH\" concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "dev:server": "PATH=\"/usr/local/bin:/opt/homebrew/bin:$PATH\" cd server && npm run dev",
+    "dev:client": "PATH=\"/usr/local/bin:/opt/homebrew/bin:$PATH\" cd client && npm run dev",
     "install:all": "npm install && cd server && npm install && cd ../client && npm install",
     "start": "cd server && npm start",
     "build": "cd client && npm run build"
