@@ -2,6 +2,10 @@ import User from '../models/User.model.js';
 import { generateToken } from '../config/jwt.js';
 import { generateVerificationToken, sendVerificationEmail } from '../utils/email.js';
 
+const isEmailVerificationSkipped = () => process.env.SKIP_EMAIL_VERIFICATION === 'true';
+const hasSmtpConfig = () => Boolean(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS);
+const shouldRequireEmailVerification = () => !isEmailVerificationSkipped() && hasSmtpConfig();
+
 function slugify(text) {
   return (text || '')
     .toLowerCase()
@@ -47,10 +51,10 @@ export const register = async (req, res) => {
       return res.status(400).json({ message: 'User already exists' });
     }
 
-    const verificationToken = generateVerificationToken();
-    const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    const requireEmailVerification = shouldRequireEmailVerification();
+    const verificationToken = requireEmailVerification ? generateVerificationToken() : undefined;
+    const verificationExpires = requireEmailVerification ? new Date(Date.now() + 24 * 60 * 60 * 1000) : undefined;
 
-    const skipVerification = process.env.SKIP_EMAIL_VERIFICATION === 'true';
     const user = await User.create({
       name,
       pronouns,
@@ -67,19 +71,22 @@ export const register = async (req, res) => {
       organizationDescription: role === 'nonprofit' ? organizationDescription : undefined,
       website: role === 'nonprofit' ? website : undefined,
       matchingProfile,
-      emailVerified: skipVerification,
-      emailVerificationToken: skipVerification ? undefined : verificationToken,
-      emailVerificationExpires: skipVerification ? undefined : verificationExpires
+      emailVerified: !requireEmailVerification,
+      emailVerificationToken: verificationToken,
+      emailVerificationExpires: verificationExpires
     });
 
     if (!user) {
       return res.status(400).json({ message: 'Invalid user data' });
     }
 
-    if (skipVerification) {
+    if (!requireEmailVerification) {
       const token = generateToken(user._id);
+      const message = isEmailVerificationSkipped()
+        ? 'Account created (email verification skipped in dev)'
+        : 'Account created (email verification disabled because SMTP is not configured)';
       return res.status(201).json({
-        message: 'Account created (email verification skipped in dev)',
+        message,
         token,
         user: user.toPublicJSON()
       });
@@ -149,7 +156,7 @@ export const login = async (req, res) => {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    if (user.emailVerified === false && process.env.SKIP_EMAIL_VERIFICATION !== 'true') {
+    if (user.emailVerified === false && shouldRequireEmailVerification()) {
       return res.status(403).json({
         message: 'Please verify your email before signing in. Check your inbox for the verification link.'
       });
